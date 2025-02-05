@@ -1,6 +1,8 @@
 import express from "express";
 import examRouter from "./routes/exam.js";
 import questionRouter from "./routes/question.js";
+import optionRouter from "./routes/option.js";
+import skillRouter from "./routes/skill.js";
 import morgan from "morgan";
 import cors from "cors";
 import bodyParse from "body-parser";
@@ -16,8 +18,10 @@ app.use(bodyParse.json({ limit: "10mb" }));
 
 app.listen(5000, () => console.log("Server is running on port 5000"));
 
-app.use("/api", examRouter);
-app.use("/api", questionRouter);
+// app.use("/api", examRouter);
+app.use("/api/question", questionRouter);
+app.use("/api/option", optionRouter);
+app.use("/api/skill", skillRouter);
 
 app.use("/api/check", (req, res) => {
   return res.status(200).json({ message: "ok!" });

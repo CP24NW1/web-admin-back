@@ -1,13 +1,11 @@
 import Joi from "joi";
 import { pool } from "../db.js";
 import {
-  createMultipleOptionsQuery,
   createQuestionQuery,
   editQuestionQuery,
   getAllQuestionQuery,
   getImageByIDQuery,
   getQuestionByIDQuery,
-  getQuestionsByIDsQuery,
   getSkillByIDQuery,
   getUserByIDQuery,
 } from "../queries/questionQueries.js";
@@ -205,74 +203,6 @@ export const editQuestion = async (req, res) => {
         question_text,
         question_id,
       },
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error,
-      message: error.message,
-    });
-  }
-};
-
-//-------------------
-// CREATE OPTION
-//-------------------
-
-export const createOptions = async (req, res) => {
-  const schema = Joi.array().items(
-    Joi.object({
-      question_id: Joi.number().integer().positive().required(),
-      is_correct: Joi.boolean().required(),
-      option_text: Joi.string().min(1).max(300).required(),
-    })
-  );
-
-  // Validate ข้อมูลทั้งหมด
-  const { error, value } = schema.validate(req.body, { abortEarly: false });
-
-  if (error) {
-    return res.status(400).json({
-      success: false,
-      error: "Validation Error",
-      details: error.details.map((err) => err.message),
-    });
-  }
-
-  try {
-    const questionIds = [...new Set(value.map((opt) => opt.question_id))];
-    const [existQuestions] = await pool.query(getQuestionsByIDsQuery, [
-      questionIds,
-    ]);
-
-    const existingQuestionIds = new Set(
-      existQuestions.map((q) => q.question_id)
-    );
-
-    const invalidQuestions = questionIds.filter(
-      (qId) => !existingQuestionIds.has(qId)
-    );
-
-    if (invalidQuestions.length > 0) {
-      return res.status(404).json({
-        success: false,
-        error: "Invalid question_id(s): Not found in database",
-        details: invalidQuestions,
-      });
-    }
-
-    const insertData = value.map(({ question_id, is_correct, option_text }) => [
-      question_id,
-      is_correct,
-      option_text,
-    ]);
-
-    await pool.query(createMultipleOptionsQuery, [insertData]);
-
-    res.status(201).json({
-      success: true,
-      message: "Options created successfully",
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

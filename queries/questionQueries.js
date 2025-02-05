@@ -13,7 +13,3 @@ export const getImageByIDQuery = `SELECT image_id FROM imagepath img WHERE img.i
 export const getUserByIDQuery = `SELECT user_id FROM user usr WHERE usr.user_id = ?`;
 
 export const editQuestionQuery = `UPDATE question SET skill_id = ?, image_id = ?,  user_id = ?, question_text = ? WHERE question_id = ?`;
-
-export const createOptionQuery = `INSERT INTO choiceoption (question_id, is_correct, option_text) VALUES (?, ?, ?)`;
-
-export const createMultipleOptionsQuery = `INSERT INTO choiceoption (question_id, is_correct, option_text) VALUES ?`;
