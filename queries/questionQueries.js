@@ -1,4 +1,9 @@
-export const getAllQuestionQuery = `SELECT * FROM question`;
+export const getAllQuestionQuery = `SELECT q.question_id, q.skill_id, s.skill_name, q.image_id, i.image_path, q.user_id, u.username, q.question_text, q.create_at
+        FROM question q
+        LEFT JOIN skill s ON q.skill_id = s.skill_id
+        LEFT JOIN imagepath i ON q.image_id = i.image_id
+        LEFT JOIN user u ON q.user_id = u.user_id
+        WHERE 1 = 1`;
 
 export const getQuestionByIDQuery = `SELECT * FROM question q WHERE q.question_id = ?`;
 

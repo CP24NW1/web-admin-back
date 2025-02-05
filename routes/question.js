@@ -9,7 +9,7 @@ import {
 const router = express.Router();
 
 // QUESTION
-router.get("", getAllQuestion);
+router.post("", getAllQuestion);
 router.get("/:question_id", getQuestionByID);
 router.post("/create", createQuestion);
 router.put("/edit", editQuestion);

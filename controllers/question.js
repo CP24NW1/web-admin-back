@@ -16,8 +16,38 @@ import {
 
 export const getAllQuestion = async (req, res) => {
   try {
-    const [result] = await pool.query(getAllQuestionQuery);
-    res.send(result);
+    // prettier-ignore
+    const { skill_id, user_id, start_date, end_date, page = 1, per_page = 10 } = req.body;
+
+    let query = getAllQuestionQuery;
+
+    let params = [];
+
+    if (skill_id) {
+      query += " AND q.skill_id = ?";
+      params.push(skill_id);
+    }
+    if (user_id) {
+      query += " AND q.user_id = ?";
+      params.push(user_id);
+    }
+    if (start_date) {
+      query += " AND DATE(q.create_at) >= ?";
+      params.push(start_date);
+    }
+    if (end_date) {
+      query += " AND DATE(q.create_at) <= ?";
+      params.push(end_date);
+    }
+
+    query += " ORDER BY q.create_at DESC LIMIT ? OFFSET ?";
+    params.push(parseInt(per_page), (parseInt(page) - 1) * parseInt(per_page));
+
+    console.log(query);
+    console.log(params);
+
+    const [result] = await pool.query(query, params);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
