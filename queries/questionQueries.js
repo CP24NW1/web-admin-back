@@ -1,11 +1,28 @@
-export const getAllQuestionQuery = `SELECT q.question_id, q.skill_id, s.skill_name, q.image_id, i.image_path, q.user_id, u.username, q.question_text, q.create_at
+export const getAllQuestionQuery = `
+        SELECT 
+        q.question_id, 
+        q.question_text, 
+        q.skill_id, 
+        s.skill_name, 
+        q.is_available, 
+        q.is_report, 
+        q.create_at
         FROM question q
         LEFT JOIN skill s ON q.skill_id = s.skill_id
-        LEFT JOIN imagepath i ON q.image_id = i.image_id
-        LEFT JOIN user u ON q.user_id = u.user_id
-        WHERE 1 = 1`;
+        WHERE 1=1`;
 
-export const getQuestionByIDQuery = `SELECT * FROM question q WHERE q.question_id = ?`;
+export const getQuestionByIDQuery = `
+        SELECT 
+        q.question_text, 
+        q.skill_id, 
+        s.skill_name, 
+        c.option_id, 
+        c.option_text, 
+        c.is_correct
+        FROM question q
+        LEFT JOIN skill s ON q.skill_id = s.skill_id
+        LEFT JOIN choiceoption c ON q.question_id = c.question_id
+        WHERE q.question_id = ?`;
 
 export const getQuestionsByIDsQuery = `SELECT question_id FROM question WHERE question_id IN (?);`;
 

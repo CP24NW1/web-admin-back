@@ -17,37 +17,63 @@ import {
 export const getAllQuestion = async (req, res) => {
   try {
     // prettier-ignore
-    const { skill_id, user_id, start_date, end_date, page = 1, per_page = 10 } = req.body;
+    const { skill_id, start_date, end_date, page = 1, per_page = 10 } = req.body;
 
     let query = getAllQuestionQuery;
 
-    let params = [];
+    let countQuery = `
+    SELECT COUNT(*) AS total FROM question q
+    LEFT JOIN skill s ON q.skill_id = s.skill_id
+    WHERE 1=1`;
 
-    if (skill_id) {
-      query += " AND q.skill_id = ?";
-      params.push(skill_id);
+    let queryParams = [];
+    let countParams = [];
+
+    // กรอง skill_id หลายค่า
+    if (Array.isArray(skill_id) && skill_id.length > 0) {
+      const placeholders = skill_id.map(() => "?").join(",");
+      query += ` AND q.skill_id IN (${placeholders})`;
+      countQuery += ` AND q.skill_id IN (${placeholders})`;
+      queryParams.push(...skill_id);
+      countParams.push(...skill_id);
     }
-    if (user_id) {
-      query += " AND q.user_id = ?";
-      params.push(user_id);
-    }
+
     if (start_date) {
       query += " AND DATE(q.create_at) >= ?";
-      params.push(start_date);
+      countQuery += " AND DATE(q.create_at) >= ?";
+      queryParams.push(start_date);
+      countParams.push(start_date);
     }
     if (end_date) {
       query += " AND DATE(q.create_at) <= ?";
-      params.push(end_date);
+      countQuery += " AND DATE(q.create_at) <= ?";
+      queryParams.push(end_date);
+      countParams.push(end_date);
     }
 
-    query += " ORDER BY q.create_at DESC LIMIT ? OFFSET ?";
-    params.push(parseInt(per_page), (parseInt(page) - 1) * parseInt(per_page));
+    // คำนวณ OFFSET
+    const offset = (page - 1) * per_page;
+    query += " LIMIT ? OFFSET ?";
+    queryParams.push(parseInt(per_page), parseInt(offset));
 
-    console.log(query);
-    console.log(params);
+    // ดึงจำนวนทั้งหมดก่อน
+    const [countResult] = await pool.query(countQuery, countParams);
+    const totalItems = countResult[0].total;
+    const totalPages = Math.ceil(totalItems / per_page);
 
-    const [result] = await pool.query(query, params);
-    res.json(result);
+    // ดึงข้อมูลตามหน้า
+    const [result] = await pool.query(query, queryParams);
+
+    console.log(countResult);
+
+    // ส่งข้อมูลที่ดึงมา
+    res.json({
+      totalPages,
+      totalItems,
+      page: parseInt(page),
+      per_page: parseInt(per_page),
+      data: result,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -85,7 +111,18 @@ export const getQuestionByID = async (req, res) => {
       });
     }
 
-    res.send(result);
+    res.json({
+      question: result[0].question_text,
+      skill: {
+        skill_id: result[0].skill_id,
+        skill_name: result[0].skill_name,
+      },
+      options: result.map((option) => ({
+        option_id: option.option_id,
+        option_text: option.option_text,
+        is_correct: option.is_correct,
+      })),
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
