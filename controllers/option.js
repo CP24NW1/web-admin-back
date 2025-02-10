@@ -5,7 +5,11 @@
 import Joi from "joi";
 import { pool } from "../db.js";
 import { getQuestionsByIDsQuery } from "../queries/questionQueries.js";
-import { createMultipleOptionsQuery } from "../queries/optionQueries.js";
+import {
+  createMultipleOptionsQuery,
+  deleteOptionsByQuestionIDQuery,
+  getOptionsByQuestionIDQuery,
+} from "../queries/optionQueries.js";
 
 export const createOptions = async (req, res) => {
   const schema = Joi.array().items(
@@ -62,6 +66,48 @@ export const createOptions = async (req, res) => {
       message: "Options created successfully",
       timestamp: new Date().toISOString(),
     });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error,
+      message: error.message,
+    });
+  }
+};
+
+export const editOptions = async (req, res) => {
+  const { question_id, options } = req.body;
+
+  try {
+    // ดึงข้อมูล options ที่มีอยู่ในฐานข้อมูล
+    const [existingOptions] = await pool.query(getOptionsByQuestionIDQuery, [
+      question_id,
+    ]);
+
+    const existingOptionTexts = existingOptions.map(
+      (option) => option.option_text
+    );
+    const newOptionTexts = options.map((option) => option.option_text);
+
+    // เปรียบเทียบ options ใหม่กับของเก่า
+    if (
+      JSON.stringify(existingOptionTexts) !== JSON.stringify(newOptionTexts)
+    ) {
+      // ลบ options เก่าทั้งหมด
+      await pool.query(deleteOptionsByQuestionIDQuery, [question_id]);
+
+      // เพิ่ม options ใหม่
+      const insertData = options.map(({ is_correct, option_text }) => [
+        question_id,
+        is_correct,
+        option_text,
+      ]);
+      await pool.query(createMultipleOptionsQuery, [insertData]);
+
+      return true; // ถ้ามีการเปลี่ยนแปลง options
+    }
+
+    return false; // ถ้า options ไม่มีการเปลี่ยนแปลง
   } catch (error) {
     res.status(500).json({
       success: false,

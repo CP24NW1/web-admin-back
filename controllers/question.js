@@ -9,6 +9,12 @@ import {
   getSkillByIDQuery,
   getUserByIDQuery,
 } from "../queries/questionQueries.js";
+import { createOptions, editOptions } from "./option.js";
+import {
+  createMultipleOptionsQuery,
+  deleteOptionsByQuestionIDQuery,
+  getOptionsByQuestionIDQuery,
+} from "../queries/optionQueries.js";
 
 //-------------------
 // GET ALL QUESTION
@@ -138,6 +144,16 @@ export const createQuestion = async (req, res) => {
     image_id: Joi.number().integer().positive().allow(null),
     user_id: Joi.number().integer().positive().allow(null),
     question_text: Joi.string().min(5).max(300).required(),
+    options: Joi.array()
+      .items(
+        Joi.object({
+          is_correct: Joi.boolean().required(),
+          option_text: Joi.string().min(1).max(300).required(),
+        })
+      )
+      .min(2)
+      .max(4)
+      .required(),
   });
 
   // Validate
@@ -151,7 +167,7 @@ export const createQuestion = async (req, res) => {
     });
   }
 
-  const { skill_id, image_id, user_id, question_text } = value;
+  const { skill_id, image_id, user_id, question_text, options } = value;
 
   try {
     //skill_id not exist
@@ -166,7 +182,7 @@ export const createQuestion = async (req, res) => {
       };
 
       for (const [key, query] of Object.entries(queries)) {
-        if (!eval(key)) continue; // ข้ามถ้า key นั้นไม่มีค่า (null หรือ undefined)
+        if (!eval(key)) continue;
 
         const [result] = await pool.query(query, [eval(key)]);
         if (result.length === 0) {
@@ -185,6 +201,15 @@ export const createQuestion = async (req, res) => {
     ]);
 
     const question_id = result.insertId;
+
+    const choiceOption = options?.map((opt) => ({
+      ...opt,
+      question_id,
+    }));
+
+    createOptions({
+      body: choiceOption,
+    });
 
     res.status(201).json({
       success: true,
@@ -212,6 +237,16 @@ export const editQuestion = async (req, res) => {
     image_id: Joi.number().integer().positive().allow(null),
     user_id: Joi.number().integer().positive().allow(null),
     question_text: Joi.string().min(5).max(300).required(),
+    options: Joi.array()
+      .items(
+        Joi.object({
+          is_correct: Joi.boolean().required(),
+          option_text: Joi.string().min(1).max(300).required(),
+        })
+      )
+      .min(2)
+      .max(4)
+      .required(),
   });
 
   // Validate
@@ -225,7 +260,8 @@ export const editQuestion = async (req, res) => {
     });
   }
 
-  const { question_id, skill_id, image_id, user_id, question_text } = value;
+  const { question_id, skill_id, image_id, user_id, question_text, options } =
+    value;
 
   try {
     //skill_id not exist
@@ -241,7 +277,7 @@ export const editQuestion = async (req, res) => {
       };
 
       for (const [key, query] of Object.entries(queries)) {
-        if (!eval(key)) continue; // ข้ามถ้า key นั้นไม่มีค่า (null หรือ undefined)
+        if (!eval(key)) continue;
 
         const [result] = await pool.query(query, [eval(key)]);
         if (result.length === 0) {
@@ -251,6 +287,8 @@ export const editQuestion = async (req, res) => {
         }
       }
     }
+
+    const optionsChanged = await editOptions(req, res);
 
     const [result] = await pool.query(editQuestionQuery, [
       skill_id || null,
