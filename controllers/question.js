@@ -1,8 +1,10 @@
 import Joi from "joi";
 import { pool } from "../db.js";
 import {
+  checkQuestionAvailbleQuery,
   createQuestionQuery,
   editQuestionQuery,
+  enableDisableQuestionQuery,
   getAllQuestionQuery,
   getImageByIDQuery,
   getQuestionByIDQuery,
@@ -118,6 +120,7 @@ export const getQuestionByID = async (req, res) => {
     }
 
     res.json({
+      question_id: question_id,
       question: result[0].question_text,
       skill: {
         skill_id: result[0].skill_id,
@@ -128,6 +131,9 @@ export const getQuestionByID = async (req, res) => {
         option_text: option.option_text,
         is_correct: option.is_correct,
       })),
+
+      is_available: result[0].is_available,
+      is_report: result[0].is_report,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -316,5 +322,38 @@ export const editQuestion = async (req, res) => {
       error: error,
       message: error.message,
     });
+  }
+};
+
+//-------------------
+// ENABLE/DISABLE QUESTION
+//-------------------
+
+export const enableDisableQuestion = async (req, res) => {
+  const { question_id } = req.body;
+
+  try {
+    // ค้นหาค่าสถานะปัจจุบันของ is_available
+    const [rows] = await pool.query(checkQuestionAvailbleQuery, [question_id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+
+    const currentStatus = rows[0].is_available;
+    const newStatus = !currentStatus; // เปลี่ยนสถานะ (true -> false หรือ false -> true)
+
+    // อัพเดตค่าของ is_available
+    await pool.query(enableDisableQuestionQuery, [newStatus, question_id]);
+
+    return res.status(200).json({
+      message: `Question status updated to ${
+        newStatus ? "enabled" : "disabled"
+      }`,
+      is_available: newStatus,
+    });
+  } catch (err) {
+    console.error("Error:", err.message);
+    return res.status(500).json({ error: err.message });
   }
 };
