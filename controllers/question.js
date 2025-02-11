@@ -158,7 +158,7 @@ export const createQuestion = async (req, res) => {
         })
       )
       .min(2)
-      .max(4)
+      .max(6)
       .required(),
   });
 
@@ -251,7 +251,7 @@ export const editQuestion = async (req, res) => {
         })
       )
       .min(2)
-      .max(4)
+      .max(6)
       .required(),
   });
 
@@ -351,6 +351,7 @@ export const enableDisableQuestion = async (req, res) => {
         newStatus ? "enabled" : "disabled"
       }`,
       is_available: newStatus,
+      question_id,
     });
   } catch (err) {
     console.error("Error:", err.message);

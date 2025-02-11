@@ -60,18 +60,8 @@ export const createOptions = async (req, res) => {
     ]);
 
     await pool.query(createMultipleOptionsQuery, [insertData]);
-
-    res.status(201).json({
-      success: true,
-      message: "Options created successfully",
-      timestamp: new Date().toISOString(),
-    });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error,
-      message: error.message,
-    });
+    console.log(error);
   }
 };
 
@@ -109,10 +99,6 @@ export const editOptions = async (req, res) => {
 
     return false; // ถ้า options ไม่มีการเปลี่ยนแปลง
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error,
-      message: error.message,
-    });
+    console.log(error);
   }
 };
