@@ -225,7 +225,7 @@ export const createQuestion = async (req, res) => {
       question_id,
     }));
 
-    createOptions({
+    await createOptions({
       body: choiceOption,
     });
 
@@ -278,8 +278,8 @@ export const editQuestion = async (req, res) => {
     });
   }
 
-  const { question_id, skill_id, image_id, user_id, question_text, options } =
-    value;
+  //prettier-ignore
+  const { question_id, skill_id, image_id, user_id, question_text, options } = value;
 
   try {
     //skill_id not exist
@@ -306,7 +306,7 @@ export const editQuestion = async (req, res) => {
       }
     }
 
-    const optionsChanged = await editOptions(req, res);
+    await editOptions(req, res);
 
     const [result] = await pool.query(editQuestionQuery, [
       skill_id || null,
@@ -319,21 +319,11 @@ export const editQuestion = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Question updated successfully",
-      updatedFields: {
-        skill_id,
-        image_id,
-        user_id,
-        question_text,
-        question_id,
-      },
       timestamp: new Date().toISOString(),
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error,
-      message: error.message,
-    });
+  } catch (err) {
+    console.error("Error:", err.message);
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -345,7 +335,6 @@ export const enableDisableQuestion = async (req, res) => {
   const { question_id } = req.body;
 
   try {
-    // ค้นหาค่าสถานะปัจจุบันของ is_available
     const [rows] = await pool.query(checkQuestionAvailbleQuery, [question_id]);
 
     if (rows.length === 0) {
@@ -353,9 +342,8 @@ export const enableDisableQuestion = async (req, res) => {
     }
 
     const currentStatus = rows[0].is_available;
-    const newStatus = !currentStatus; // เปลี่ยนสถานะ (true -> false หรือ false -> true)
+    const newStatus = !currentStatus;
 
-    // อัพเดตค่าของ is_available
     await pool.query(enableDisableQuestionQuery, [newStatus, question_id]);
 
     return res.status(200).json({

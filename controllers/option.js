@@ -12,23 +12,37 @@ import {
 } from "../queries/optionQueries.js";
 
 export const createOptions = async (req, res) => {
-  const schema = Joi.array().items(
-    Joi.object({
-      question_id: Joi.number().integer().positive().required(),
-      is_correct: Joi.boolean().required(),
-      option_text: Joi.string().min(1).max(300).required(),
-    })
-  );
+  const schema = Joi.array()
+    .items(
+      Joi.object({
+        question_id: Joi.number().integer().positive().required(),
+        is_correct: Joi.boolean().required(),
+        option_text: Joi.string().min(1).max(300).required(),
+      })
+    )
+    .custom((value, helpers) => {
+      // ตรวจสอบว่าใน array มีค่า is_correct ที่เป็น true เพียงแค่ตัวเดียว
+      const correctOptions = value.filter(
+        (option) => option.is_correct === true
+      );
+      if (correctOptions.filter((option) => option.is_correct).length === 0) {
+        return helpers.message("There must be at least one correct answer");
+      } else if (
+        correctOptions.filter((option) => option.is_correct).length > 1
+      ) {
+        return helpers.message("There should only be one correct answer");
+      }
+      return value;
+    }, "is_correct validation");
 
   // Validate ข้อมูลทั้งหมด
   const { error, value } = schema.validate(req.body, { abortEarly: false });
 
   if (error) {
-    return res.status(400).json({
-      success: false,
-      error: "Validation Error",
-      details: error.details.map((err) => err.message),
-    });
+    const validationError = new Error("Validation Error");
+    validationError.details = error.details.map((err) => err.message);
+    validationError.status = 400; // กำหนดสถานะที่เหมาะสม
+    throw validationError;
   }
 
   try {
@@ -65,28 +79,38 @@ export const createOptions = async (req, res) => {
   }
 };
 
+//-------------------
+// EDIT OPTION
+//-------------------
+
 export const editOptions = async (req, res) => {
   const { question_id, options } = req.body;
 
   try {
-    // ดึงข้อมูล options ที่มีอยู่ในฐานข้อมูล
     const [existingOptions] = await pool.query(getOptionsByQuestionIDQuery, [
       question_id,
     ]);
 
-    const existingOptionTexts = existingOptions.map(
-      (option) => option.option_text
-    );
-    const newOptionTexts = options.map((option) => option.option_text);
+    const updates = [];
 
-    // เปรียบเทียบ options ใหม่กับของเก่า
-    if (
-      JSON.stringify(existingOptionTexts) !== JSON.stringify(newOptionTexts)
-    ) {
-      // ลบ options เก่าทั้งหมด
+    options.forEach((newOption) => {
+      if (existingOptions) {
+        const isOptionChanged =
+          existingOptions.option_text !== newOption.option_text ||
+          existingOptions.is_correct !== newOption.is_correct;
+
+        if (isOptionChanged) {
+          updates.push({
+            option_text: newOption.option_text,
+            is_correct: newOption.is_correct,
+          });
+        }
+      }
+    });
+
+    if (updates.length > 0) {
       await pool.query(deleteOptionsByQuestionIDQuery, [question_id]);
 
-      // เพิ่ม options ใหม่
       const insertData = options.map(({ is_correct, option_text }) => [
         question_id,
         is_correct,
@@ -94,11 +118,9 @@ export const editOptions = async (req, res) => {
       ]);
       await pool.query(createMultipleOptionsQuery, [insertData]);
 
-      return true; // ถ้ามีการเปลี่ยนแปลง options
+      return true;
     }
-
-    return false; // ถ้า options ไม่มีการเปลี่ยนแปลง
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };

@@ -38,6 +38,8 @@ CREATE TABLE question (
     user_id INT,
     question_text VARCHAR(300),
     create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	is_available BOOLEAN DEFAULT TRUE,
+    is_report BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (skill_id) REFERENCES skill(skill_id),
     FOREIGN KEY (image_id) REFERENCES imagepath(image_id),
     FOREIGN KEY (user_id) REFERENCES user(user_id)
