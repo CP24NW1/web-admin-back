@@ -71,10 +71,14 @@ export const getAllQuestion = async (req, res) => {
       }
     }
 
+    query += " ORDER BY q.create_at DESC";
+
     // คำนวณ OFFSET
     const offset = (page - 1) * per_page;
     query += " LIMIT ? OFFSET ?";
     queryParams.push(parseInt(per_page), parseInt(offset));
+
+    console.log(query);
 
     // ดึงจำนวนทั้งหมดก่อน
     const [countResult] = await pool.query(countQuery, countParams);
@@ -83,8 +87,6 @@ export const getAllQuestion = async (req, res) => {
 
     // ดึงข้อมูลตามหน้า
     const [result] = await pool.query(query, queryParams);
-
-    console.log(countResult);
 
     // ส่งข้อมูลที่ดึงมา
     res.json({

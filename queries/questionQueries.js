@@ -9,8 +9,7 @@ export const getAllQuestionQuery = `
         q.create_at
         FROM question q
         LEFT JOIN skill s ON q.skill_id = s.skill_id
-        WHERE 1=1
-        ORDER BY q.create_at DESC`;
+        WHERE 1=1`;
 
 export const getQuestionByIDQuery = `
         SELECT 
