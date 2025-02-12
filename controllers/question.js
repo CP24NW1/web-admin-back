@@ -25,7 +25,7 @@ import {
 export const getAllQuestion = async (req, res) => {
   try {
     // prettier-ignore
-    const { skill_id, start_date, end_date, page = 1, per_page = 10 } = req.body;
+    let { skill_id, start_date, end_date, page = 1, per_page = 10, search_filter } = req.body;
 
     let query = getAllQuestionQuery;
 
@@ -57,6 +57,18 @@ export const getAllQuestion = async (req, res) => {
       countQuery += " AND DATE(q.create_at) <= ?";
       queryParams.push(end_date);
       countParams.push(end_date);
+    }
+
+    // Filter by search_filter if provided
+    if (search_filter) {
+      search_filter = search_filter.trim();
+      if (search_filter.length > 0) {
+        const searchPlaceholder = `%${search_filter}%`; // Using `%` for partial match
+        query += ` AND q.question_text LIKE ?`;
+        queryParams.push(searchPlaceholder);
+        countQuery += ` AND q.question_text LIKE ?`;
+        countParams.push(searchPlaceholder);
+      }
     }
 
     // คำนวณ OFFSET
