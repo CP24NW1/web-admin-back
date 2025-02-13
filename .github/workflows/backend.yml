@@ -42,11 +42,11 @@ jobs:
           
       # Connect to VPN
       - name: Connect to VPN
-        uses: kota65535/github-openvpn-connect-action@v2
-        with:
-          config_file: .github/workflows/sitst-client.ovpn
-          username: ${{ secrets.OVPN_USERNAME }}
-          password: ${{ secrets.OVPN_PASSWORD }}
+        run: |
+          sudo openvpn --config .github/workflows/sitst-client.ovpn \
+            --auth-user-pass .github/workflows/vpn-credentials.txt \
+            --auth-nocache \
+            --verb 4 &
 
       # Build and Push Docker Image
       - name: Build and Push Backend Docker Image
