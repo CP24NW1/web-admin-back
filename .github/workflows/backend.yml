@@ -16,13 +16,30 @@ jobs:
       # Checkout Source Code
       - name: Checkout
         uses: actions/checkout@v3
-
+      
+      - name: Debug Check Files
+        run: |
+          ls -l
+          ls -l .github/workflows
+          cat .github/workflows/sitst-client.ovpn
+          
       # Install OpenVPN
       - name: Install OpenVPN
         run: |
           sudo apt update
           sudo apt install -y openvpn openvpn-systemd-resolved
 
+      # Create VPN Credentials File
+      - name: Create VPN Credentials
+        run: |
+          echo "${{ secrets.OVPN_USERNAME }}" > .github/workflows/vpn-credentials.txt
+          echo "${{ secrets.OVPN_PASSWORD }}" >> .github/workflows/vpn-credentials.txt
+
+      # Create CA Certificate File
+      - name: Create CA Certificate
+        run: |
+          echo "${{ secrets.VPN_CA_CERT }}" > .github/workflows/vpn-st_ca.crt
+          
       # Connect to VPN
       - name: Connect to VPN
         uses: kota65535/github-openvpn-connect-action@v2
