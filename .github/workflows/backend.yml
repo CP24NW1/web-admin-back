@@ -1,165 +1,45 @@
-name: Backend CI/CD
+name: Deploy Backend
 
 on:
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to deploy'
-        required: true
-        default: 'main'
+  push:
+    branches:
+      - main
 
 jobs:
-  backend-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout Source Code
-      - name: Checkout
-        uses: actions/checkout@v3
-      
-      - name: Debug Check Files
-        run: |
-          ls -l
-          ls -l .github/workflows
-          cat .github/workflows/sitst-client.ovpn
-          
-      # Install OpenVPN
-      - name: Install OpenVPN
-        run: |
-          sudo apt update
-          sudo apt install -y openvpn openvpn-systemd-resolved
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      # Create VPN Credentials File
-      - name: Create VPN Credentials
-        run: |
-          echo "${{ secrets.OVPN_USERNAME }}" > .github/workflows/vpn-credentials.txt
-          echo "${{ secrets.OVPN_PASSWORD }}" >> .github/workflows/vpn-credentials.txt
-
-      # Create CA Certificate File
-      - name: Create CA Certificate
-        run: |
-          echo "${{ secrets.VPN_CA_CERT }}" > .github/workflows/vpn-st_ca.crt
-          
-      # Connect to VPN
-      - name: Connect to VPN
-        run: |
-          sudo openvpn --config .github/workflows/sitst-client.ovpn \
-            --auth-user-pass .github/workflows/vpn-credentials.txt \
-            --auth-nocache \
-            --verb 4 &
-
-      # Build and Push Docker Image
-      - name: Build and Push Backend Docker Image
-        env:
-          IMAGE_NAME: wachrawit/my-backend-app
-          IMAGE_TAG: ${{ github.event.inputs.branch }}
+      # ✅ แก้ปัญหา Docker Login (เพิ่มตัวแปร username และ password)
+      - name: Login to Docker Hub
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-          echo "Building Docker image $IMAGE_NAME:$IMAGE_TAG..."
-          docker build -f Dockerfile -t $IMAGE_NAME:$IMAGE_TAG .
+      # ✅ แก้ปัญหา DNS (ใช้ Google DNS เพื่อแก้ DNS Resolution)
+      - name: Fix DNS Issue
+        run: |
+          echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
 
-          docker push $IMAGE_NAME:$IMAGE_TAG
-
-      # Deploy Backend
-      - name: Deploy Backend
+      # ✅ ใช้ SSH Key แทนรหัสผ่าน (แนะนำ)
+      - name: Deploy Backend via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
-            IMAGE_NAME=wachrawit/my-backend-app
-            IMAGE_TAG=${{ github.event.inputs.branch }}
+            IMAGE_NAME=my-backend-app
+            IMAGE_TAG=main
 
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-            # Step 1: Stop and remove any existing container
+            echo "Deploying backend..."
             docker stop my-backend-app || true && docker rm my-backend-app || true
-
-            # Step 2: Remove old image
             docker rmi -f $IMAGE_NAME:$IMAGE_TAG || true
-
-            # Step 3: Pull the latest image
             docker pull $IMAGE_NAME:$IMAGE_TAG
-
-            # Step 4: Clean up unused images
             docker image prune -f
-
-            # Step 5: Run Backend Container with required environment variables
             docker run -d --name my-backend-app \
               --network app-network \
               -p 5001:5000 \
               $IMAGE_NAME:$IMAGE_TAG
-
-
-# name: Backend CI/CD
-
-# on:
-#   workflow_dispatch:
-#     inputs:
-#       branch:
-#         description: 'Branch to deploy'
-#         required: true
-#         default: 'main'
-
-# jobs:
-#   backend-deploy:
-#     runs-on: ubuntu-latest
-#     steps:
-#       # Checkout Source Code
-#       - name: Checkout
-#         uses: actions/checkout@v3
-
-#       # Install OpenVPN
-#       - name: Install OpenVPN
-#         run: |
-#           sudo apt update
-#           sudo apt install -y openvpn openvpn-systemd-resolved
-
-#       # Connect to VPN
-#       - name: Connect to VPN
-#         uses: kota65535/github-openvpn-connect-action@v2
-#         with:
-#           config_file: .github/workflows/sitst-client.ovpn
-#           username: ${{ secrets.OVPN_USERNAME }}
-#           password: ${{ secrets.OVPN_PASSWORD }}
-
-#       # Build and Push Docker Image
-#       - name: Build and Push Backend Docker Image
-#         env:
-#           IMAGE_NAME: pongpairoch/my-backend-app
-#           IMAGE_TAG: ${{ github.event.inputs.branch }}
-#         run: |
-#           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-#           docker build -f CP24NW1-web-admin-backend/Dockerfile \
-#             -t $IMAGE_NAME:$IMAGE_TAG \
-#             CP24NW1-web-admin-backend/
-
-#           docker push $IMAGE_NAME:$IMAGE_TAG
-
-#       # Deploy via SSH
-#       - name: Deploy Backend
-#         uses: appleboy/ssh-action@v1.0.0
-#         with:
-#           host: ${{ secrets.SSH_HOST }}
-#           username: ${{ secrets.SSH_USERNAME }}
-#           password: ${{ secrets.SSH_PASSWORD }}
-#           script: |
-#             IMAGE_NAME=pongpairoch/my-backend-app
-#             IMAGE_TAG=${{ github.event.inputs.branch }}
-
-#             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-#             docker stop my-backend-app || true && docker rm my-backend-app || true
-
-#             docker rmi -f $IMAGE_NAME:$IMAGE_TAG || true
-
-#             docker pull $IMAGE_NAME:$IMAGE_TAG
-
-#             docker image prune -f
-
-#             docker run -d --name my-backend-app \
-#               -p 5001:5000 \
-#               $IMAGE_NAME:$IMAGE_TAG
