@@ -18,9 +18,10 @@ jobs:
         uses: actions/checkout@v3
 
       # Install Docker
-      - name: Install Docker
+      - name: Update apt and Install Docker
         run: |
-          sudo apt-get update
+          sudo apt-get update -y
+          sudo apt-get upgrade -y
           sudo apt-get install -y docker.io
           sudo systemctl enable --now docker
 
