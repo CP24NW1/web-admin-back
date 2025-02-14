@@ -1,51 +1,81 @@
-name: Deploy Backend
+name: Backend CI/CD
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'main'
 
 jobs:
-  deploy:
+  backend-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      # Checkout Source Code
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      # ✅ แก้ไข Docker Login ให้ใช้ Secrets เดิม
-      - name: Login to Docker Hub
+      # Install Docker
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          sudo systemctl enable --now docker
+
+      # Install OpenVPN
+      - name: Install OpenVPN
+        run: |
+          sudo apt update
+          sudo apt install -y openvpn openvpn-systemd-resolved
+
+      # Connect to VPN
+      - name: Connect to VPN
+        uses: kota65535/github-openvpn-connect-action@v2
+        with:
+          config_file: .github/workflows/sitst-client.ovpn
+          username: ${{ secrets.OVPN_USERNAME }}
+          password: ${{ secrets.OVPN_PASSWORD }}
+
+      # Build and Push Docker Image
+      - name: Build and Push Backend Docker Image
+        env:
+          IMAGE_NAME: wachrawit/my-backend-app
+          IMAGE_TAG: ${{ github.event.inputs.branch }}
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      # ✅ แก้ปัญหา DNS Timeout (ใช้ Google DNS)
-      - name: Fix DNS Issue
-        run: |
-          echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+          docker build -f Dockerfile -t $IMAGE_NAME:$IMAGE_TAG .
 
-      # ✅ ตรวจสอบการเชื่อมต่อ SSH ก่อน Deploy
-      - name: Check SSH Connection
-        run: |
-          echo "🔍 Checking SSH connectivity..."
-          ssh -o StrictHostKeyChecking=no -v ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "echo '✅ SSH Connected Successfully!'"
+          docker push $IMAGE_NAME:$IMAGE_TAG
 
-      # ✅ ใช้ SSH แบบใช้รหัสผ่านแทน Key
-      - name: Deploy Backend via SSH (Using Password)
+      # Deploy Backend
+      - name: Deploy Backend
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
-          port: 22
           script: |
-            IMAGE_NAME=my-backend-app
-            IMAGE_TAG=main
+            IMAGE_NAME=wachrawit/my-backend-app
+            IMAGE_TAG=${{ github.event.inputs.branch }}
 
-            echo "Deploying backend..."
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+            # Step 1: Stop and remove any existing container
             docker stop my-backend-app || true && docker rm my-backend-app || true
+
+            # Step 2: Remove old image
             docker rmi -f $IMAGE_NAME:$IMAGE_TAG || true
+
+            # Step 3: Pull the latest image
             docker pull $IMAGE_NAME:$IMAGE_TAG
+
+            # Step 4: Clean up unused images
             docker image prune -f
+
+            # Step 5: Run Backend Container with required environment variables
             docker run -d --name my-backend-app \
               --network app-network \
               -p 5001:5000 \
