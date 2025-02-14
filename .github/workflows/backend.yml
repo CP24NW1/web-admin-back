@@ -13,23 +13,24 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # ✅ แก้ปัญหา Docker Login (เพิ่มตัวแปร username และ password)
+      # ✅ แก้ไข Docker Login ให้ใช้ Secrets เดิม
       - name: Login to Docker Hub
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      # ✅ แก้ปัญหา DNS (ใช้ Google DNS เพื่อแก้ DNS Resolution)
+      # ✅ แก้ปัญหา DNS Timeout (ใช้ Google DNS)
       - name: Fix DNS Issue
         run: |
           echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
 
-      # ✅ ใช้ SSH Key แทนรหัสผ่าน (แนะนำ)
-      - name: Deploy Backend via SSH
+      # ✅ ใช้ SSH แบบใช้รหัสผ่านแทน Key
+      - name: Deploy Backend via SSH (Using Password)
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
           script: |
             IMAGE_NAME=my-backend-app
             IMAGE_TAG=main
