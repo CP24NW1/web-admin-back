@@ -23,6 +23,12 @@ jobs:
         run: |
           echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
 
+      # ✅ ตรวจสอบการเชื่อมต่อ SSH ก่อน Deploy
+      - name: Check SSH Connection
+        run: |
+          echo "🔍 Checking SSH connectivity..."
+          ssh -o StrictHostKeyChecking=no -v ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "echo '✅ SSH Connected Successfully!'"
+
       # ✅ ใช้ SSH แบบใช้รหัสผ่านแทน Key
       - name: Deploy Backend via SSH (Using Password)
         uses: appleboy/ssh-action@v1.0.0
