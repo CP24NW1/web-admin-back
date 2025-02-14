@@ -17,14 +17,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # Install Docker
-      - name: Update apt and Install Docker
-        run: |
-          sudo apt-get update -y
-          sudo apt-get upgrade -y
-          sudo apt-get install -y docker.io
-          sudo systemctl enable --now docker
-
       # Install OpenVPN
       - name: Install OpenVPN
         run: |
