@@ -64,6 +64,7 @@ CREATE TABLE examtesting (
     attempt_at TIMESTAMP,
     time_taken INT,
     is_correct BOOLEAN,
+    selected_option_id INT,
     FOREIGN KEY (question_id) REFERENCES question(question_id),
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
