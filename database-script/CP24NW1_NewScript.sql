@@ -62,6 +62,7 @@ CREATE TABLE examtesting (
     user_id INT,
     create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     attempt_at TIMESTAMP,
+    finish_at TIMESTAMP,
     time_taken INT,
     is_correct BOOLEAN,
     selected_option_id INT,
