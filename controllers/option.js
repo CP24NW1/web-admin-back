@@ -116,6 +116,9 @@ export const editOptions = async (req, res) => {
         is_correct,
         option_text,
       ]);
+
+      console.log(insertData);
+
       await pool.query(createMultipleOptionsQuery, [insertData]);
 
       return true;

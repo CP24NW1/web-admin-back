@@ -2,4 +2,4 @@ export const createMultipleOptionsQuery = `INSERT INTO choiceoption (question_id
 
 export const getOptionsByQuestionIDQuery = `SELECT * FROM choiceoption c WHERE c.question_id = ?`;
 
-export const deleteOptionsByQuestionIDQuery = `DELETE FROM choiceoption c WHERE c.question_id = ?`;
+export const deleteOptionsByQuestionIDQuery = `DELETE FROM choiceoption WHERE question_id = ?`;
