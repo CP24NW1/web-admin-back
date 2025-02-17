@@ -19,11 +19,11 @@ app.use(bodyParse.json({ limit: "10mb" }));
 app.listen(5000, () => console.log("Server is running on port 5000"));
 
 // app.use("/api", examRouter);
-app.use("/api/question", questionRouter);
-app.use("/api/option", optionRouter);
-app.use("/api/skill", skillRouter);
+app.use("/api/admin/question", questionRouter);
+app.use("/api/admin/option", optionRouter);
+app.use("/api/admin/skill", skillRouter);
 
-app.use("/api/check", (req, res) => {
+app.use("/api/admin/check", (req, res) => {
   return res.status(200).json({ message: "ok!" });
 });
 
