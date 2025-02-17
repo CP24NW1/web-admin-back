@@ -37,8 +37,8 @@ export const getImageByIDQuery = `SELECT image_id FROM imagepath img WHERE img.i
 
 export const getUserByIDQuery = `SELECT user_id FROM user usr WHERE usr.user_id = ?`;
 
-export const editQuestionQuery = `UPDATE question SET skill_id = ?, image_id = ?,  user_id = ?, question_text = ? WHERE question_id = ?`;
+export const editQuestionQuery = `UPDATE question SET skill_id = ?, image_id = ?,  user_id = ?, question_text = ?, create_at = now() WHERE question_id = ?`;
 
 export const checkQuestionAvailbleQuery = `SELECT is_available FROM question WHERE question_id = ?`;
 
-export const enableDisableQuestionQuery = `UPDATE question SET is_available = ? WHERE question_id = ?`;
+export const enableDisableQuestionQuery = `UPDATE question SET is_available = ?, create_at = now() WHERE question_id = ?`;
