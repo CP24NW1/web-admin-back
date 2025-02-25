@@ -1,8 +1,8 @@
 import express from "express";
-import examRouter from "./routes/exam.js";
 import questionRouter from "./routes/question.js";
 import optionRouter from "./routes/option.js";
 import skillRouter from "./routes/skill.js";
+import authRouter from "./routes/auth.js";
 import morgan from "morgan";
 import cors from "cors";
 import bodyParse from "body-parser";
@@ -22,6 +22,7 @@ app.listen(5000, () => console.log("Server is running on port 5000"));
 app.use("/api/admin/question", questionRouter);
 app.use("/api/admin/option", optionRouter);
 app.use("/api/admin/skill", skillRouter);
+app.use("/api/admin/auth", authRouter);
 
 app.use("/api/admin/check", (req, res) => {
   return res.status(200).json({ message: "ok!" });

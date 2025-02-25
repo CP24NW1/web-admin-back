@@ -12,8 +12,7 @@ CREATE TABLE role (
 CREATE TABLE user (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(30),
-    password VARCHAR(20),
-    email VARCHAR(50),
+    password VARCHAR(150),
     role_id INT,
     FOREIGN KEY (role_id) REFERENCES role(role_id)
 );
