@@ -11,8 +11,13 @@ CREATE TABLE role (
 -- ตาราง User
 CREATE TABLE user (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(30),
-    password VARCHAR(150),
+    firstname VARCHAR(30),
+    lastname VARCHAR(30),
+    email VARCHAR(50),
+    DOB DATETIME,
+    create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    password VARCHAR(200),
     role_id INT,
     FOREIGN KEY (role_id) REFERENCES role(role_id)
 );
