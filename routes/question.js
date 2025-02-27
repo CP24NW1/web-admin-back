@@ -6,14 +6,16 @@ import {
   getAllQuestion,
   getQuestionByID,
 } from "../controllers/question.js";
+import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
 // QUESTION
-router.post("", getAllQuestion);
-router.get("/:question_id", getQuestionByID);
-router.post("/create", createQuestion);
-router.put("/edit", editQuestion);
-router.put("/available", enableDisableQuestion);
+//แก้ METHOD GET
+router.post("", auth, getAllQuestion);
+router.get("/:question_id", auth, getQuestionByID);
+router.post("/create", auth, createQuestion);
+router.put("/edit", auth, editQuestion);
+router.put("/available", auth, enableDisableQuestion);
 
 export default router;
