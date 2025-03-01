@@ -334,7 +334,7 @@ export const editQuestion = async (req, res) => {
 //-------------------
 
 export const enableDisableQuestion = async (req, res) => {
-  const { question_id } = req.body;
+  const { question_id } = req.params;
 
   try {
     const [rows] = await pool.query(checkQuestionAvailbleQuery, [question_id]);

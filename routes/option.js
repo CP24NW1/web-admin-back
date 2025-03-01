@@ -4,6 +4,7 @@ import { createOptions } from "../controllers/option.js";
 const router = express.Router();
 
 //OPTION
-router.post("/create", createOptions);
+//แก้ สรุปใช้มั้ย
+// router.post("/create", createOptions);
 
 export default router;

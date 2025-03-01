@@ -12,10 +12,11 @@ const router = express.Router();
 
 // QUESTION
 //แก้ METHOD GET
-router.post("", auth, getAllQuestion);
+router.get("", auth, getAllQuestion);
 router.get("/:question_id", auth, getQuestionByID);
 router.post("/create", auth, createQuestion);
 router.put("/edit", auth, editQuestion);
-router.put("/available", auth, enableDisableQuestion);
+//แก้ req.params
+router.put("/available/:question_id", auth, enableDisableQuestion);
 
 export default router;
