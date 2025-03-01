@@ -1,5 +1,9 @@
 import jwt from "jsonwebtoken";
 
+//-------------------
+// AUTHENTICATION
+//-------------------
+
 export const auth = async (req, res, next) => {
   try {
     const authHeader = req.headers["authorization"];
@@ -44,4 +48,28 @@ export const auth = async (req, res, next) => {
       message: "An error occurred during token validation",
     });
   }
+};
+
+//-------------------
+// AUTHORIZE
+//-------------------
+
+const authorize = (permission) => {
+  return (req, res, next) => {
+    db.execute(
+      "SELECT p.permission_name FROM permissions p JOIN user_permissions up ON p.id = up.permission_id WHERE up.user_id = ?",
+      [req.userId],
+      (err, results) => {
+        if (err) return res.status(500).send("Database error");
+
+        const userPermissions = results.map((row) => row.permission_name);
+
+        if (userPermissions.includes(permission)) {
+          return next();
+        } else {
+          return res.status(403).send("Forbidden: Insufficient permissions");
+        }
+      }
+    );
+  };
 };
