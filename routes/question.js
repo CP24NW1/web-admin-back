@@ -10,7 +10,7 @@ import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// QUESTION
+// QUESTION MANAGEMENT API
 router.get("", auth, getAllQuestion);
 router.get("/:question_id", auth, getQuestionByID);
 router.post("/create", auth, createQuestion);

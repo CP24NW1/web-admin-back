@@ -14,7 +14,7 @@ export const register = async (req, res) => {
   try {
     const { firstname, lastname, email, dob, password } = req.body;
     const [user] = await pool.query(getExistUser, [email]);
-    if (user.length > 0) {
+    if (user.length !== 0) {
       return res.status(400).json({
         success: false,
         message: "User already exists",

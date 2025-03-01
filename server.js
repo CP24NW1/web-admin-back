@@ -1,12 +1,16 @@
 import express from "express";
+import morgan from "morgan";
+import cors from "cors";
+import bodyParse from "body-parser";
+
 import questionRouter from "./routes/question.js";
 import optionRouter from "./routes/option.js";
 import skillRouter from "./routes/skill.js";
 import authRouter from "./routes/auth.js";
-import morgan from "morgan";
-import cors from "cors";
-import bodyParse from "body-parser";
+import userRouter from "./routes/user.js";
+
 import { CustomError } from "./utils/CustomError.js";
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -23,6 +27,7 @@ app.use("/api/admin/question", questionRouter);
 app.use("/api/admin/option", optionRouter);
 app.use("/api/admin/skill", skillRouter);
 app.use("/api/admin/auth", authRouter);
+app.use("/api/admin/user", userRouter);
 
 app.use("/api/admin/check", (req, res) => {
   return res.status(200).json({ message: "ok!" });

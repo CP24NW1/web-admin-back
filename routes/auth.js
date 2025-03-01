@@ -3,7 +3,7 @@ import { login, refreshAccessToken, register } from "../controllers/auth.js";
 
 const router = express.Router();
 
-// AUTH
+// AUTHENTICATION
 // web admin ไม่มี register => create user
 router.post("/register", register);
 router.post("/login", login);

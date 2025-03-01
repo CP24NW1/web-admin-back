@@ -1,14 +1,24 @@
--- สร้างฐานข้อมูล
 CREATE DATABASE CP24NW1;
 USE CP24NW1;
 
--- ตาราง Role
 CREATE TABLE role (
-    role_id INT AUTO_INCREMENT PRIMARY KEY,
-    role VARCHAR(20)
+    role_id INT PRIMARY KEY,
+    role VARCHAR(50) NOT NULL
 );
 
--- ตาราง User
+CREATE TABLE permission (
+    permission_id INT PRIMARY KEY,
+    permission VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE role_permission (
+    role_id INT,
+    permission_id INT,
+    FOREIGN KEY (role_id) REFERENCES Role(role_id),
+    FOREIGN KEY (permission_id) REFERENCES Permission(permission_id),
+    PRIMARY KEY (role_id, permission_id)
+);
+
 CREATE TABLE user (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     firstname VARCHAR(30),
@@ -22,19 +32,16 @@ CREATE TABLE user (
     FOREIGN KEY (role_id) REFERENCES role(role_id)
 );
 
--- ตาราง Skill
 CREATE TABLE skill (
     skill_id INT AUTO_INCREMENT PRIMARY KEY,
     skill_name VARCHAR(50)
 );
 
--- ตาราง imagePath
 CREATE TABLE imagepath (
     image_id INT AUTO_INCREMENT PRIMARY KEY,
     image_path VARCHAR(200)
 );
 
--- ตาราง Question
 CREATE TABLE question (
     question_id INT AUTO_INCREMENT PRIMARY KEY,
     skill_id INT,
@@ -49,7 +56,6 @@ CREATE TABLE question (
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 
--- ตาราง Option
 CREATE TABLE choiceoption (
     option_id INT AUTO_INCREMENT PRIMARY KEY,
     question_id INT,
@@ -58,7 +64,6 @@ CREATE TABLE choiceoption (
     FOREIGN KEY (question_id) REFERENCES question(question_id)
 );
 
--- ตาราง ExamTesting
 CREATE TABLE examtesting (
     exam_question_id INT AUTO_INCREMENT PRIMARY KEY,
     exam_id INT,
