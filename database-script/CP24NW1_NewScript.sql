@@ -7,7 +7,7 @@ CREATE TABLE role (
 );
 
 CREATE TABLE permission (
-    permission_id INT PRIMARY KEY,
+    permission_id INT PRIMARY KEY auto_increment,
     permission VARCHAR(50) NOT NULL
 );
 
@@ -23,11 +23,13 @@ CREATE TABLE user (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     firstname VARCHAR(30),
     lastname VARCHAR(30),
-    email VARCHAR(50),
+    email VARCHAR(50) UNIQUE,
     DOB DATETIME,
     create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     password VARCHAR(200),
+    is_verify BOOLEAN,
+    verification_code VARCHAR(10),
     role_id INT,
     FOREIGN KEY (role_id) REFERENCES role(role_id)
 );

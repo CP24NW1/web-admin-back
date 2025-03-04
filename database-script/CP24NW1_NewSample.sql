@@ -1,3 +1,4 @@
+USE cp24nw1;
 -- เพิ่มข้อมูลในตาราง Skill
 INSERT INTO skill (skill_name) VALUES 
 ('Grammar'),
