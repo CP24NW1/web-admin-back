@@ -252,3 +252,93 @@ export const disableEnableUser = async (req, res) => {
     });
   }
 };
+
+//-------------------
+// GET ALL USER PAGINATION
+//-------------------
+
+export const getAllUserPagination = async (req, res) => {
+  try {
+    const { search_filter, role_id, page = 1, per_page = 10 } = req.body;
+
+    const offset = (page - 1) * per_page;
+
+    let query = `
+      SELECT 
+          u.user_id, 
+          u.firstname, 
+          u.lastname, 
+          u.email, 
+          u.role_id
+      FROM 
+          user u
+    `;
+
+    let queryParams = [];
+    let whereConditions = [];
+
+    if (search_filter) {
+      whereConditions.push(`
+        (u.firstname LIKE CONCAT('%', ?, '%') 
+        OR u.lastname LIKE CONCAT('%', ?, '%') 
+        OR u.email LIKE CONCAT('%', ?, '%'))
+      `);
+      queryParams.push(search_filter, search_filter, search_filter);
+    }
+    if (role_id) {
+      whereConditions.push(`u.role_id = ?`);
+      queryParams.push(role_id);
+    }
+
+    if (whereConditions.length > 0) {
+      query += " WHERE " + whereConditions.join(" AND ");
+    }
+
+    query += `
+      ORDER BY u.user_id
+      LIMIT ? OFFSET ?;
+    `;
+    queryParams.push(per_page, offset);
+
+    // console.log(query);
+
+    const [rows] = await pool.query(query, queryParams);
+
+    let countQuery = `
+      SELECT COUNT(*) as totalItems
+      FROM user u
+    `;
+
+    let countQueryParams = [];
+
+    if (search_filter) {
+      countQuery += `
+        WHERE (u.firstname LIKE CONCAT('%', ?, '%') 
+        OR u.lastname LIKE CONCAT('%', ?, '%') 
+        OR u.email LIKE CONCAT('%', ?, '%'))
+      `;
+      countQueryParams.push(search_filter, search_filter, search_filter);
+    }
+
+    if (role_id) {
+      countQuery += ` AND u.role_id = ?`;
+      countQueryParams.push(role_id);
+    }
+
+    const [countResult] = await pool.query(countQuery, countQueryParams);
+
+    const totalItems = countResult[0]?.totalItems;
+    const totalPages = Math.ceil(totalItems / per_page);
+
+    res.json({
+      page,
+      per_page,
+      totalItems,
+      totalPages,
+      data: rows,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error retrieving users" });
+  }
+};
