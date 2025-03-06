@@ -11,8 +11,58 @@ const refreshSecret = process.env.JWT_REFRESH_SECRET;
 //-------------------
 
 export const register = async (req, res) => {
+  const lowerCaseRegex = /[a-z]/;
+  const upperCaseRegex = /[A-Z]/;
+  const numberRegex = /\d/;
+  const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+
+  const schema = Joi.object({
+    firstname: Joi.string().min(2).max(50).required(),
+    lastname: Joi.string().min(2).max(50).required(),
+    email: Joi.string().email().required(),
+    dob: Joi.date().required(),
+    password: Joi.string()
+      .min(8)
+      .required()
+      .custom((value, helpers) => {
+        if (!lowerCaseRegex.test(value)) {
+          return helpers.message(
+            "Password must contain at least one lowercase letter"
+          );
+        }
+        if (!upperCaseRegex.test(value)) {
+          return helpers.message(
+            "Password must contain at least one uppercase letter"
+          );
+        }
+        if (!numberRegex.test(value)) {
+          return helpers.message("Password must contain at least one number");
+        }
+        if (!specialCharRegex.test(value)) {
+          return helpers.message(
+            "Password must contain at least one special character"
+          );
+        }
+        return value;
+      }),
+  });
   try {
     const { firstname, lastname, email, dob, password } = req.body;
+
+    const { error } = schema.validate({
+      firstname,
+      lastname,
+      email,
+      dob,
+      password,
+    });
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.details[0].message,
+      });
+    }
+
     const [user] = await pool.query(getExistUser, [email]);
     if (user.length !== 0) {
       return res.status(400).json({
@@ -31,6 +81,7 @@ export const register = async (req, res) => {
       dob,
       encryptPassword,
     ]);
+
     res.status(201).json({
       success: true,
       message: "Registration successful",
@@ -69,7 +120,9 @@ export const login = async (req, res) => {
       });
     }
 
-    const payload = { email };
+    const user_id = user[0]?.user_id;
+
+    const payload = { email, user_id };
 
     console.log(payload);
 
