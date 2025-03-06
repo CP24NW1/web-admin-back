@@ -4,7 +4,9 @@ export const updateUserQuery = `UPDATE user SET firstname = ?, lastname = ?, ema
 
 export const getExistUserQuery = `SELECT user_id FROM user WHERE email = ?`;
 
-export const deleteUserQuery = `DELETE FROM user WHERE user_id = ?`;
+export const getExistUserByIdQuery = `SELECT * FROM user WHERE user_id = ?`;
+
+export const disableEnableUserQuery = `UPDATE user SET is_active = ? WHERE user_id = ?`;
 
 export const verifyEmailSuccess = `UPDATE user SET is_verify = ? WHERE email = ?`;
 

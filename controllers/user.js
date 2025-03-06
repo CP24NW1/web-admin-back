@@ -2,7 +2,8 @@ import Joi from "joi";
 import { pool } from "../db.js";
 import {
   createUserQuery,
-  deleteUserQuery,
+  disableEnableUserQuery,
+  getExistUserByIdQuery,
   getExistUserQuery,
   updateUserQuery,
   verifyEmailSuccess,
@@ -216,15 +217,14 @@ export const editUser = async (req, res) => {
 };
 
 //-------------------
-// SOFT DELETE USER
+// DISABLE/ENABLE USER
 //-------------------
 
-//ยังไม่เสร็จ ลบไม่ได้ติด timestamp
-export const deleteUser = async (req, res) => {
+export const disableEnableUser = async (req, res) => {
   const user_id = req.params.user_id;
 
   try {
-    const [existingUser] = await pool.query(getExistUserQuery[user_id]);
+    const [existingUser] = await pool.query(getExistUserByIdQuery, [user_id]);
 
     if (existingUser.length === 0) {
       return res.status(404).json({
@@ -233,11 +233,15 @@ export const deleteUser = async (req, res) => {
       });
     }
 
-    await pool.query(deleteUserQuery, [user_id]);
+    const is_active = Boolean(existingUser[0]?.is_active);
+
+    await pool.query(disableEnableUserQuery, [!is_active, user_id]);
 
     return res.status(200).json({
       success: true,
-      message: "User deleted successfully",
+      message: `User ID: ${user_id} is now ${
+        !is_active ? "enable" : "disable"
+      }`,
     });
   } catch (error) {
     console.error(error);

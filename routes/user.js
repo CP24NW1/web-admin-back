@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createUser,
+  disableEnableUser,
   editUser,
   setPassword,
   verifyEmail,
@@ -11,7 +12,7 @@ const router = express.Router();
 // USER MANAGEMENT API
 router.post("/create", createUser);
 router.put("/:user_id/edit", editUser);
-router.delete("/:user_id/delete", editUser);
+router.put("/:user_id/status", disableEnableUser);
 router.put("/verify", verifyEmail);
 router.put("/password", setPassword);
 
