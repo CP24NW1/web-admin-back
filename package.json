@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon  --env-file=.env.development server",
-    "start:prod": "nodemon  --env-file=.env.production server"
+    "start": "nodemon --env-file=.env.development server",
+    "start:prod": "nodemon --env-file=.env.production server"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +25,6 @@
     "morgan": "^1.10.0",
     "mysql2": "^3.11.4",
     "nodemailer": "^6.10.0",
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.9"
   }
 }

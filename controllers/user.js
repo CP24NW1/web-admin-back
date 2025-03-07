@@ -5,6 +5,7 @@ import {
   disableEnableUserQuery,
   getExistUserByIdQuery,
   getExistUserQuery,
+  getUserDetailQuery,
   updateUserQuery,
   verifyEmailSuccess,
 } from "../queries/userQueries.js";
@@ -339,6 +340,40 @@ export const getAllUserPagination = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error retrieving users" });
+    res.status(500).json({
+      success: false,
+      error: "Internal Server Error",
+      message: error.message,
+    });
+  }
+};
+
+//-------------------
+// GET USER DETAIL
+//-------------------
+
+export const getUserDetail = async (req, res) => {
+  const user_id = req.params.user_id;
+  try {
+    const [result] = await pool.query(getUserDetailQuery, [user_id]);
+
+    if (result.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user_detail: result[0],
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      error: "Internal Server Error",
+      message: error.message,
+    });
   }
 };

@@ -4,6 +4,7 @@ import {
   disableEnableUser,
   editUser,
   getAllUserPagination,
+  getUserDetail,
   setPassword,
   verifyEmail,
 } from "../controllers/user.js";
@@ -17,5 +18,5 @@ router.put("/:user_id/status", disableEnableUser);
 router.put("/verify", verifyEmail);
 router.put("/password", setPassword);
 router.get("", getAllUserPagination);
-
+router.get("/:user_id", getUserDetail);
 export default router;

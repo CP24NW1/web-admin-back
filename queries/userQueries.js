@@ -11,3 +11,5 @@ export const disableEnableUserQuery = `UPDATE user SET is_active = ? WHERE user_
 export const verifyEmailSuccess = `UPDATE user SET is_verify = ? WHERE email = ?`;
 
 export const setPassword = `UPDATE user SET password = ? WHERE email = ?`;
+
+export const getUserDetailQuery = `SELECT user_id, firstname, lastname, email, DOB, is_active FROM user WHERE user_id = ?`;
