@@ -270,6 +270,9 @@ export const getAllUserPagination = async (req, res) => {
           u.firstname, 
           u.lastname, 
           u.email, 
+          u.create_at,
+          u.is_active,
+          u.is_verify,
           u.role_id
       FROM 
           user u
