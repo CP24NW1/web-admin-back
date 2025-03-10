@@ -24,15 +24,25 @@ import {
 
 export const getAllQuestion = async (req, res) => {
   try {
-    // prettier-ignore
-    let { skill_id, start_date, end_date, page = 1, per_page = 10, search_filter } = req.body;
+    let {
+      skill_id,
+      start_date,
+      end_date,
+      page = "1",
+      per_page = "10",
+      search_filter,
+    } = req.query;
+
+    // แปลง page และ per_page จาก string เป็น number
+    const pageNumber = parseInt(page, 10);
+    const perPageNumber = parseInt(per_page, 10);
 
     let query = getAllQuestionQuery;
 
     let countQuery = `
-    SELECT COUNT(*) AS total FROM question q
-    LEFT JOIN skill s ON q.skill_id = s.skill_id
-    WHERE 1=1`;
+      SELECT COUNT(*) AS total FROM question q
+      LEFT JOIN skill s ON q.skill_id = s.skill_id
+      WHERE 1=1`;
 
     let queryParams = [];
     let countParams = [];
@@ -44,6 +54,11 @@ export const getAllQuestion = async (req, res) => {
       countQuery += ` AND q.skill_id IN (${placeholders})`;
       queryParams.push(...skill_id);
       countParams.push(...skill_id);
+    } else if (skill_id) {
+      query += " AND q.skill_id = ?";
+      countQuery += " AND q.skill_id = ?";
+      queryParams.push(skill_id);
+      countParams.push(skill_id);
     }
 
     if (start_date) {
@@ -74,16 +89,14 @@ export const getAllQuestion = async (req, res) => {
     query += " ORDER BY q.create_at DESC";
 
     // คำนวณ OFFSET
-    const offset = (page - 1) * per_page;
+    const offset = (pageNumber - 1) * perPageNumber;
     query += " LIMIT ? OFFSET ?";
-    queryParams.push(parseInt(per_page), parseInt(offset));
-
-    console.log(query);
+    queryParams.push(perPageNumber, offset);
 
     // ดึงจำนวนทั้งหมดก่อน
     const [countResult] = await pool.query(countQuery, countParams);
     const totalItems = countResult[0].total;
-    const totalPages = Math.ceil(totalItems / per_page);
+    const totalPages = Math.ceil(totalItems / perPageNumber);
 
     // ดึงข้อมูลตามหน้า
     const [result] = await pool.query(query, queryParams);
@@ -92,11 +105,12 @@ export const getAllQuestion = async (req, res) => {
     res.json({
       totalPages,
       totalItems,
-      page: parseInt(page),
-      per_page: parseInt(per_page),
+      page: pageNumber,
+      per_page: perPageNumber,
       data: result,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 };

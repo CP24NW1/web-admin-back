@@ -260,9 +260,13 @@ export const disableEnableUser = async (req, res) => {
 
 export const getAllUserPagination = async (req, res) => {
   try {
-    const { search_filter, role_id, page = 1, per_page = 10 } = req.body;
+    const { search_filter, role_id, page = "1", per_page = "10" } = req.query;
 
-    const offset = (page - 1) * per_page;
+    // แปลงค่าจาก string เป็น integer
+    const pageNumber = parseInt(page, 10);
+    const perPageNumber = parseInt(per_page, 10);
+
+    const offset = (pageNumber - 1) * perPageNumber;
 
     let query = `
       SELECT 
@@ -302,9 +306,7 @@ export const getAllUserPagination = async (req, res) => {
       ORDER BY u.user_id
       LIMIT ? OFFSET ?;
     `;
-    queryParams.push(per_page, offset);
-
-    // console.log(query);
+    queryParams.push(perPageNumber, offset);
 
     const [rows] = await pool.query(query, queryParams);
 
@@ -332,11 +334,11 @@ export const getAllUserPagination = async (req, res) => {
     const [countResult] = await pool.query(countQuery, countQueryParams);
 
     const totalItems = countResult[0]?.totalItems;
-    const totalPages = Math.ceil(totalItems / per_page);
+    const totalPages = Math.ceil(totalItems / perPageNumber);
 
     res.json({
-      page,
-      per_page,
+      page: pageNumber,
+      per_page: perPageNumber,
       totalItems,
       totalPages,
       data: rows,
