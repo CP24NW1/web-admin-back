@@ -260,7 +260,16 @@ export const disableEnableUser = async (req, res) => {
 
 export const getAllUserPagination = async (req, res) => {
   try {
-    const { search_filter, role_id, page = "1", per_page = "10" } = req.query;
+    const {
+      search_filter,
+      role_id,
+      is_verify,
+      is_active,
+      start_date,
+      end_date,
+      page = "1",
+      per_page = "10",
+    } = req.query;
 
     // แปลงค่าจาก string เป็น integer
     const pageNumber = parseInt(page, 10);
@@ -282,6 +291,11 @@ export const getAllUserPagination = async (req, res) => {
           user u
     `;
 
+    let countQuery = `
+    SELECT COUNT(*) as totalItems
+    FROM user u
+  `;
+
     let queryParams = [];
     let whereConditions = [];
 
@@ -298,40 +312,42 @@ export const getAllUserPagination = async (req, res) => {
       queryParams.push(role_id);
     }
 
-    if (whereConditions.length > 0) {
-      query += " WHERE " + whereConditions.join(" AND ");
+    if (is_verify) {
+      whereConditions.push(`u.is_verify = ?`);
+      queryParams.push(is_verify === "true" ? 1 : 0);
     }
 
+    if (is_active) {
+      whereConditions.push(`u.is_active = ?`);
+      queryParams.push(is_active === "true" ? 1 : 0);
+    }
+
+    if (start_date) {
+      whereConditions.push(`DATE(u.update_at) >= ?`);
+      queryParams.push(start_date);
+    }
+
+    if (end_date) {
+      whereConditions.push(`DATE(u.update_at) <= ?`);
+      queryParams.push(end_date);
+    }
+
+    if (whereConditions.length > 0) {
+      query += " WHERE " + whereConditions.join(" AND ");
+      countQuery += " WHERE " + whereConditions.join(" AND ");
+    }
+
+    //combine with pagination
     query += `
-      ORDER BY u.user_id
+      ORDER BY u.update_at DESC
       LIMIT ? OFFSET ?;
     `;
+
     queryParams.push(perPageNumber, offset);
 
     const [rows] = await pool.query(query, queryParams);
 
-    let countQuery = `
-      SELECT COUNT(*) as totalItems
-      FROM user u
-    `;
-
-    let countQueryParams = [];
-
-    if (search_filter) {
-      countQuery += `
-        WHERE (u.firstname LIKE CONCAT('%', ?, '%') 
-        OR u.lastname LIKE CONCAT('%', ?, '%') 
-        OR u.email LIKE CONCAT('%', ?, '%'))
-      `;
-      countQueryParams.push(search_filter, search_filter, search_filter);
-    }
-
-    if (role_id) {
-      countQuery += ` AND u.role_id = ?`;
-      countQueryParams.push(role_id);
-    }
-
-    const [countResult] = await pool.query(countQuery, countQueryParams);
+    const [countResult] = await pool.query(countQuery, queryParams);
 
     const totalItems = countResult[0]?.totalItems;
     const totalPages = Math.ceil(totalItems / perPageNumber);
