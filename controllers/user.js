@@ -6,13 +6,13 @@ import {
   getExistUserByIdQuery,
   getExistUserQuery,
   getUserDetailQuery,
+  setPasswordQuery,
   updateUserQuery,
   verifyEmailSuccess,
 } from "../queries/userQueries.js";
 
 import {
   generateVerificationCode,
-  sendSetPasswordEmail,
   sendVerificationEmail,
 } from "../utils/emailUtils.js";
 
@@ -141,8 +141,15 @@ export const setPassword = async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const encryptPassword = await bcrypt.hash(password, salt);
 
+  if (!email) {
+    return res.status(400).json({
+      success: false,
+      message: "Email must not be empty",
+    });
+  }
+
   try {
-    await pool.query(setPassword, [encryptPassword, email]);
+    await pool.query(setPasswordQuery, [encryptPassword, email]);
     res.status(200).json({
       success: true,
       message: "Set password successfully",
@@ -283,7 +290,7 @@ export const getAllUserPagination = async (req, res) => {
           u.firstname, 
           u.lastname, 
           u.email, 
-          u.create_at,
+          u.update_at,
           u.is_active,
           u.is_verify,
           u.role_id

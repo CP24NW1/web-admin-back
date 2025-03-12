@@ -15,7 +15,7 @@ export const generateVerificationCode = () => {
 
 export const sendVerificationEmail = async (email, verificationCode) => {
   const encode = await encodeURIComponent(email);
-  const url = `${process.env.HOST_URL}?email=${encode}`;
+  const url = `${process.env.FRONTEND_HOST_URL}/admin/verify-email?email=${encode}`;
 
   try {
     const transporter = nodemailer.createTransport({
