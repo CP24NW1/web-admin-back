@@ -269,7 +269,6 @@ export const getAllUserPagination = async (req, res) => {
   try {
     const {
       search_filter,
-      role_id,
       is_verify,
       is_active,
       start_date,
@@ -278,9 +277,8 @@ export const getAllUserPagination = async (req, res) => {
       per_page = "10",
     } = req.query;
 
-    // แปลงค่าจาก string เป็น integer
-    const pageNumber = parseInt(page, 10);
-    const perPageNumber = parseInt(per_page, 10);
+    const pageNumber = parseInt(page);
+    const perPageNumber = parseInt(per_page);
 
     const offset = (pageNumber - 1) * perPageNumber;
 
@@ -292,8 +290,7 @@ export const getAllUserPagination = async (req, res) => {
           u.email, 
           u.update_at,
           u.is_active,
-          u.is_verify,
-          u.role_id
+          u.is_verify
       FROM 
           user u
     `;
@@ -313,10 +310,6 @@ export const getAllUserPagination = async (req, res) => {
         OR u.email LIKE CONCAT('%', ?, '%'))
       `);
       queryParams.push(search_filter, search_filter, search_filter);
-    }
-    if (role_id) {
-      whereConditions.push(`u.role_id = ?`);
-      queryParams.push(role_id);
     }
 
     if (is_verify) {

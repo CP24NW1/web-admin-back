@@ -1,22 +1,9 @@
 CREATE DATABASE CP24NW1;
 USE CP24NW1;
 
-CREATE TABLE role (
-    role_id INT PRIMARY KEY,
-    role VARCHAR(50) NOT NULL
-);
-
 CREATE TABLE permission (
     permission_id INT PRIMARY KEY auto_increment,
     permission VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE role_permission (
-    role_id INT,
-    permission_id INT,
-    FOREIGN KEY (role_id) REFERENCES Role(role_id),
-    FOREIGN KEY (permission_id) REFERENCES Permission(permission_id),
-    PRIMARY KEY (role_id, permission_id)
 );
 
 CREATE TABLE user (
@@ -30,9 +17,15 @@ CREATE TABLE user (
     password VARCHAR(200),
     is_active BOOLEAN DEFAULT TRUE,
     is_verify BOOLEAN,
-    verification_code VARCHAR(10),
-    role_id INT,
-    FOREIGN KEY (role_id) REFERENCES role(role_id)
+    verification_code VARCHAR(10)
+);
+
+CREATE TABLE user_permission (
+    user_id INT,
+    permission_id INT,
+    PRIMARY KEY (user_id, permission_id),
+    FOREIGN KEY (user_id) REFERENCES user(user_id),
+    FOREIGN KEY (permission_id) REFERENCES permission(permission_id)
 );
 
 CREATE TABLE skill (
@@ -81,4 +74,6 @@ CREATE TABLE examtesting (
     FOREIGN KEY (question_id) REFERENCES question(question_id),
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
+
+
 

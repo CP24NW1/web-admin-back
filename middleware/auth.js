@@ -1,4 +1,6 @@
 import jwt from "jsonwebtoken";
+import { getUserPermissionQuery } from "../queries/authQueries.js";
+import { pool } from "../db.js";
 
 //-------------------
 // AUTHENTICATION
@@ -54,22 +56,36 @@ export const auth = async (req, res, next) => {
 // AUTHORIZE
 //-------------------
 
-const authorize = (permission) => {
-  return (req, res, next) => {
-    db.execute(
-      "SELECT p.permission_name FROM permissions p JOIN user_permissions up ON p.id = up.permission_id WHERE up.user_id = ?",
-      [req.userId],
-      (err, results) => {
-        if (err) return res.status(500).send("Database error");
+export const authorize = (permission) => {
+  return async (req, res, next) => {
+    try {
+      const token = req.headers["authorization"]?.split(" ")[1];
 
-        const userPermissions = results.map((row) => row.permission_name);
-
-        if (userPermissions.includes(permission)) {
-          return next();
-        } else {
-          return res.status(403).send("Forbidden: Insufficient permissions");
-        }
+      if (!token) {
+        return res
+          .status(401)
+          .json({ message: "Unauthorized: No token provided" });
       }
-    );
+
+      const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+      const user_id = decoded.user_id;
+
+      const [results] = await pool.query(getUserPermissionQuery, [user_id]);
+
+      const userPermissions = results.map((perm) => perm.permission);
+
+      if (userPermissions.includes(permission)) {
+        return next();
+      } else {
+        return res
+          .status(403)
+          .json({ message: "Forbidden: Insufficient permissions" });
+      }
+    } catch (err) {
+      if (err.name === "JsonWebTokenError") {
+        return res.status(401).json({ message: "Unauthorized: Invalid token" });
+      }
+      return res.status(500).json({ message: "Internal server error" });
+    }
   };
 };

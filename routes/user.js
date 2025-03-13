@@ -8,15 +8,17 @@ import {
   setPassword,
   verifyEmail,
 } from "../controllers/user.js";
+import { auth, authorize } from "../middleware/auth.js";
+import { permissions } from "../utils/permission.js";
 
 const router = express.Router();
 
 // USER MANAGEMENT API
-router.post("/create", createUser);
-router.put("/:user_id/edit", editUser);
-router.put("/:user_id/status", disableEnableUser);
+router.post("/create", auth, authorize(permissions.CREATE_USER), createUser);
+router.put("/:user_id/edit", auth, authorize(permissions.UPDATE_USER), editUser);
+router.put("/:user_id/status", auth, authorize(permissions.UPDATE_USER), disableEnableUser);
+router.get("", auth, authorize(permissions.READ_USER), getAllUserPagination);
+router.get("/:user_id", auth, authorize(permissions.READ_USER), getUserDetail);
 router.put("/verify", verifyEmail);
 router.put("/password", setPassword);
-router.get("", getAllUserPagination);
-router.get("/:user_id", getUserDetail);
 export default router;
