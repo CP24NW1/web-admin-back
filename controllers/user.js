@@ -19,6 +19,8 @@ import {
 import { getExistUser } from "../queries/authQueries.js";
 
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { grantPermissionToUserQuery } from "../queries/permissionQueries.js";
 
 //-------------------
 // CREATE USER
@@ -69,6 +71,9 @@ export const createUser = async (req, res) => {
     await sendVerificationEmail(email, verificationCode);
 
     const [results] = await pool.query(createUserQuery, queryValues);
+
+    //grant base permission => READ_PROFILE_WEB_ADMIN (permission_id: 1)
+    await pool.query(grantPermissionToUserQuery, [results.insertId, 1]);
 
     return res.status(201).json({
       success: true,
@@ -376,6 +381,48 @@ export const getAllUserPagination = async (req, res) => {
 export const getUserDetail = async (req, res) => {
   const user_id = req.params.user_id;
   try {
+    const [result] = await pool.query(getUserDetailQuery, [user_id]);
+
+    if (result.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user_detail: result[0],
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      error: "Internal Server Error",
+      message: error.message,
+    });
+  }
+};
+
+//-------------------
+// GET USER's OWN DETAIL
+//-------------------
+
+export const fetchMe = async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: "No token provided",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+
+    const user_id = decoded.user_id;
+
     const [result] = await pool.query(getUserDetailQuery, [user_id]);
 
     if (result.length === 0) {

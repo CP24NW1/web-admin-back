@@ -9,7 +9,7 @@ import { permissions } from "../utils/permission.js";
 
 const router = express.Router();
 
-// PERMISSIONAPI
+// PERMISSION API
 router.get("", auth, authorize(permissions.READ_PERMISSION), getAllPermission);
 router.post("/grant", auth, authorize(permissions.GRANT_PERMISSION), grantPermissionToUser);
 

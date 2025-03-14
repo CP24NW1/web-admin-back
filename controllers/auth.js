@@ -7,93 +7,93 @@ const accessSecret = process.env.JWT_ACCESS_SECRET;
 const refreshSecret = process.env.JWT_REFRESH_SECRET;
 
 //-------------------
-// REGISTER
+// REGISTER (NOT USED)
 //-------------------
 
-export const register = async (req, res) => {
-  const lowerCaseRegex = /[a-z]/;
-  const upperCaseRegex = /[A-Z]/;
-  const numberRegex = /\d/;
-  const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+// export const register = async (req, res) => {
+//   const lowerCaseRegex = /[a-z]/;
+//   const upperCaseRegex = /[A-Z]/;
+//   const numberRegex = /\d/;
+//   const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
 
-  const schema = Joi.object({
-    firstname: Joi.string().min(2).max(50).required(),
-    lastname: Joi.string().min(2).max(50).required(),
-    email: Joi.string().email().required(),
-    dob: Joi.date().required(),
-    password: Joi.string()
-      .min(8)
-      .required()
-      .custom((value, helpers) => {
-        if (!lowerCaseRegex.test(value)) {
-          return helpers.message(
-            "Password must contain at least one lowercase letter"
-          );
-        }
-        if (!upperCaseRegex.test(value)) {
-          return helpers.message(
-            "Password must contain at least one uppercase letter"
-          );
-        }
-        if (!numberRegex.test(value)) {
-          return helpers.message("Password must contain at least one number");
-        }
-        if (!specialCharRegex.test(value)) {
-          return helpers.message(
-            "Password must contain at least one special character"
-          );
-        }
-        return value;
-      }),
-  });
-  try {
-    const { firstname, lastname, email, dob, password } = req.body;
+//   const schema = Joi.object({
+//     firstname: Joi.string().min(2).max(50).required(),
+//     lastname: Joi.string().min(2).max(50).required(),
+//     email: Joi.string().email().required(),
+//     dob: Joi.date().required(),
+//     password: Joi.string()
+//       .min(8)
+//       .required()
+//       .custom((value, helpers) => {
+//         if (!lowerCaseRegex.test(value)) {
+//           return helpers.message(
+//             "Password must contain at least one lowercase letter"
+//           );
+//         }
+//         if (!upperCaseRegex.test(value)) {
+//           return helpers.message(
+//             "Password must contain at least one uppercase letter"
+//           );
+//         }
+//         if (!numberRegex.test(value)) {
+//           return helpers.message("Password must contain at least one number");
+//         }
+//         if (!specialCharRegex.test(value)) {
+//           return helpers.message(
+//             "Password must contain at least one special character"
+//           );
+//         }
+//         return value;
+//       }),
+//   });
+//   try {
+//     const { firstname, lastname, email, dob, password } = req.body;
 
-    const { error } = schema.validate({
-      firstname,
-      lastname,
-      email,
-      dob,
-      password,
-    });
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.details[0].message,
-      });
-    }
+//     const { error } = schema.validate({
+//       firstname,
+//       lastname,
+//       email,
+//       dob,
+//       password,
+//     });
+//     if (error) {
+//       return res.status(400).json({
+//         success: false,
+//         message: error.details[0].message,
+//       });
+//     }
 
-    const [user] = await pool.query(getExistUser, [email]);
-    if (user.length !== 0) {
-      return res.status(400).json({
-        success: false,
-        message: "User already exists",
-      });
-    }
+//     const [user] = await pool.query(getExistUser, [email]);
+//     if (user.length !== 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "User already exists",
+//       });
+//     }
 
-    const salt = await bcrypt.genSalt(10);
-    const encryptPassword = await bcrypt.hash(password, salt);
+//     const salt = await bcrypt.genSalt(10);
+//     const encryptPassword = await bcrypt.hash(password, salt);
 
-    await pool.query(saveUser, [
-      firstname,
-      lastname,
-      email,
-      dob,
-      encryptPassword,
-    ]);
+//     const [result] = await pool.query(saveUser, [
+//       firstname,
+//       lastname,
+//       email,
+//       dob,
+//       encryptPassword,
+//     ]);
 
-    res.status(201).json({
-      success: true,
-      message: "Registration successful",
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "An error occurred during registration. Please try again later.",
-    });
-  }
-};
+//     res.status(201).json({
+//       success: true,
+//       message: "Registration successful",
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({
+//       success: false,
+//       message: "An error occurred during registration. Please try again later.",
+//     });
+//   }
+// };
 
 //-------------------
 // LOGIN
