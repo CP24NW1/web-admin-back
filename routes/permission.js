@@ -11,6 +11,6 @@ const router = express.Router();
 
 // PERMISSION API
 router.get("", auth, authorize(permissions.READ_PERMISSION), getAllPermission);
-router.post("/grant", auth, authorize(permissions.GRANT_PERMISSION), grantPermissionToUser);
+router.post("/grant",  grantPermissionToUser);
 
 export default router;

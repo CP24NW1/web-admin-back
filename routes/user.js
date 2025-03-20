@@ -24,4 +24,13 @@ router.get("/:user_id", auth, authorize(permissions.READ_USER), getUserDetail);
 router.put("/verify", verifyEmail);
 router.put("/password", setPassword);
 
+// router.get("/me",  fetchMe);
+// router.post("/create", createUser);
+// router.put("/:user_id/edit",  editUser);
+// router.put("/:user_id/status",  disableEnableUser);
+// router.get("", getAllUserPagination);
+// router.get("/:user_id", getUserDetail);
+// router.put("/verify", verifyEmail);
+// router.put("/password", setPassword);
+
 export default router;

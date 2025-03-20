@@ -1,7 +1,11 @@
 import { pool } from "../db.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { getExistUser, saveUser } from "../queries/authQueries.js";
+import {
+  checkAccessTokenQuery,
+  getExistUser,
+  saveUser,
+} from "../queries/authQueries.js";
 
 const accessSecret = process.env.JWT_ACCESS_SECRET;
 const refreshSecret = process.env.JWT_REFRESH_SECRET;
@@ -124,8 +128,6 @@ export const login = async (req, res) => {
 
     const payload = { email, user_id };
 
-    console.log(payload);
-
     const accessToken = jwt.sign(payload, accessSecret, { expiresIn: "1h" });
 
     const refreshToken = jwt.sign(payload, refreshSecret, {
@@ -154,6 +156,7 @@ export const login = async (req, res) => {
 export const refreshAccessToken = async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(400).json({
         success: false,
@@ -170,24 +173,37 @@ export const refreshAccessToken = async (req, res) => {
       });
     }
 
-    jwt.verify(refreshToken, refreshSecret, (err, decoded) => {
-      if (err) {
-        return res.status(403).json({
-          success: false,
-          message: "Invalid or expired refresh token",
-        });
-      }
+    const decoded = jwt.verify(refreshToken, refreshSecret);
 
-      const payload = { username: decoded.username };
-      const accessToken = jwt.sign(payload, accessSecret, {
-        expiresIn: "1h",
-      });
+    const payload = { email: decoded.email, user_id: decoded.user_id };
+    const accessToken = jwt.sign(payload, accessSecret, {
+      expiresIn: "1h",
+    });
 
-      res.status(200).json({
-        success: true,
-        message: "Access token refreshed successfully",
-        accessToken: `Bearer ${accessToken}`,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Access token refreshed successfully",
+      accessToken: `Bearer ${accessToken}`,
+    });
+  } catch (error) {
+    console.error("Error refreshing access token:", error);
+    return res.status(403).json({
+      success: false,
+      message: "Invalid or expired refresh token",
+    });
+  }
+};
+
+//-------------------
+// TEST ACCESS TOKEN VALIDATION
+//-------------------
+
+export const checkAccessToken = async (req, res) => {
+  try {
+    await pool.query(checkAccessTokenQuery);
+    res.status(200).json({
+      success: true,
+      message: "Validate access token successfully",
     });
   } catch (error) {
     console.error(error);

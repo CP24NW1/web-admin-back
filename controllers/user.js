@@ -3,6 +3,7 @@ import { pool } from "../db.js";
 import {
   createUserQuery,
   disableEnableUserQuery,
+  fetchMeQuery,
   getExistUserByIdQuery,
   getExistUserQuery,
   getUserDetailQuery,
@@ -423,7 +424,7 @@ export const fetchMe = async (req, res) => {
 
     const user_id = decoded.user_id;
 
-    const [result] = await pool.query(getUserDetailQuery, [user_id]);
+    const [result] = await pool.query(fetchMeQuery, [user_id]);
 
     if (result.length === 0) {
       return res.status(404).json({
@@ -432,9 +433,42 @@ export const fetchMe = async (req, res) => {
       });
     }
 
+    const user = result.reduce((acc, curr) => {
+      const {
+        user_id,
+        firstname,
+        lastname,
+        email,
+        DOB,
+        is_active,
+        is_verify,
+        permission,
+      } = curr;
+
+      // Check if the user already exists in the accumulator
+      let user = acc.find((u) => u.user_id === user_id);
+      if (!user) {
+        user = {
+          user_id,
+          firstname,
+          lastname,
+          email,
+          DOB,
+          is_active,
+          is_verify,
+          permissions: [],
+        };
+        acc.push(user);
+      }
+
+      // Add permission to the user's permission list
+      user.permissions.push(permission);
+      return acc;
+    }, []);
+
     res.status(200).json({
       success: true,
-      user_detail: result[0],
+      user_detail: user[0],
     });
   } catch (error) {
     console.error(error);

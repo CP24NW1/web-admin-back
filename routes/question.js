@@ -18,4 +18,10 @@ router.post("/create", auth, authorize(permissions.CREATE_QUESTION ), createQues
 router.put("/edit", auth, authorize(permissions.UPDATE_QUESTION), editQuestion);
 router.put("/available/:question_id", auth, authorize(permissions.UPDATE_QUESTION), enableDisableQuestion);
 
+
+// router.get("",  getAllQuestion);
+// router.get("/:question_id",  getQuestionByID);
+// router.post("/create",  createQuestion);
+// router.put("/edit", editQuestion);
+// router.put("/available/:question_id", enableDisableQuestion);
 export default router;

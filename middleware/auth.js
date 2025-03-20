@@ -68,6 +68,9 @@ export const authorize = (permission) => {
       }
 
       const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+
+      console.log(decoded);
+
       const user_id = decoded.user_id;
 
       const [results] = await pool.query(getUserPermissionQuery, [user_id]);
