@@ -1,4 +1,4 @@
-export const createUserQuery = `INSERT INTO user (firstname, lastname, email, DOB, is_verify, verification_code) VALUES (?, ?, ?, ?, ?, ?)`;
+export const createUserQuery = `INSERT INTO user (firstname, lastname, email, DOB, is_verify, verification_code, role_id) VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
 export const updateUserQuery = `UPDATE user SET firstname = ?, lastname = ?, email = ?, DOB = ?, update_at = CURRENT_TIMESTAMP WHERE user_id = ?`;
 

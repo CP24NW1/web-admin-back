@@ -7,21 +7,22 @@ import {
   getQuestionByID,
 } from "../controllers/question.js";
 import { auth, authorize } from "../middleware/auth.js";
-import { permissions } from "../utils/permission.js";
+import { roles } from "../utils/role.js";
 
 const router = express.Router();
 
 // QUESTION MANAGEMENT API
-router.get("", auth, authorize(permissions.READ_QUESTION), getAllQuestion);
-router.get("/:question_id", auth, authorize(permissions.READ_QUESTION),  getQuestionByID);
-router.post("/create", auth, authorize(permissions.CREATE_QUESTION ), createQuestion);
-router.put("/edit", auth, authorize(permissions.UPDATE_QUESTION), editQuestion);
-router.put("/available/:question_id", auth, authorize(permissions.UPDATE_QUESTION), enableDisableQuestion);
+// router.get("", auth, authorize(permissions.READ_QUESTION), getAllQuestion);
+// router.get("/:question_id", auth, authorize(permissions.READ_QUESTION),  getQuestionByID);
+// router.post("/create", auth, authorize(permissions.CREATE_QUESTION ), createQuestion);
+// router.put("/edit", auth, authorize(permissions.UPDATE_QUESTION), editQuestion);
+// router.put("/available/:question_id", auth, authorize(permissions.UPDATE_QUESTION), enableDisableQuestion);
 
 
-// router.get("",  getAllQuestion);
-// router.get("/:question_id",  getQuestionByID);
-// router.post("/create",  createQuestion);
-// router.put("/edit", editQuestion);
-// router.put("/available/:question_id", enableDisableQuestion);
+router.get("", auth, authorize([roles.ADMIN, roles.QUESTION_CREATOR]), getAllQuestion);
+router.get("/:question_id", auth, authorize([roles.ADMIN, roles.QUESTION_CREATOR]),  getQuestionByID);
+router.post("/create", auth, authorize([roles.ADMIN, roles.QUESTION_CREATOR]), createQuestion);
+router.put("/edit", auth, authorize([roles.ADMIN, roles.QUESTION_CREATOR]), editQuestion);
+router.put("/available/:question_id", auth, authorize([roles.ADMIN, roles.QUESTION_CREATOR]), enableDisableQuestion);
+
 export default router;

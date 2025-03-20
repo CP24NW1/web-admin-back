@@ -21,7 +21,6 @@ import { getExistUser } from "../queries/authQueries.js";
 
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { grantPermissionToUserQuery } from "../queries/permissionQueries.js";
 
 //-------------------
 // CREATE USER
@@ -33,6 +32,7 @@ export const createUser = async (req, res) => {
     lastname: Joi.string().min(1).max(30).required(),
     email: Joi.string().email().max(50).required(),
     dob: Joi.date().iso().required(),
+    role_id: Joi.number().required(),
   });
 
   // Validate
@@ -47,7 +47,7 @@ export const createUser = async (req, res) => {
   }
 
   try {
-    const { firstname, lastname, email, dob } = value;
+    const { firstname, lastname, email, dob, role_id } = value;
 
     const [existUser] = await pool.query(getExistUserQuery, [email]);
 
@@ -67,14 +67,12 @@ export const createUser = async (req, res) => {
       dob,
       false,
       verificationCode,
+      role_id,
     ];
 
     await sendVerificationEmail(email, verificationCode);
 
     const [results] = await pool.query(createUserQuery, queryValues);
-
-    //grant base permission => READ_PROFILE_WEB_ADMIN (permission_id: 1)
-    await pool.query(grantPermissionToUserQuery, [results.insertId, 1]);
 
     return res.status(201).json({
       success: true,
