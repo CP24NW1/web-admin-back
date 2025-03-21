@@ -18,6 +18,11 @@ import {
   getOptionsByQuestionIDQuery,
 } from "../queries/optionQueries.js";
 
+import jwt from "jsonwebtoken";
+import { authorize } from "../middleware/auth.js";
+import { roles } from "../utils/role.js";
+import { getUserRoleQuery } from "../queries/authQueries.js";
+
 //-------------------
 // GET ALL QUESTION
 //-------------------
@@ -37,10 +42,16 @@ export const getAllQuestion = async (req, res) => {
     const pageNumber = parseInt(page, 10);
     const perPageNumber = parseInt(per_page, 10);
 
+    //filter question by user_id if they are not ADMIN
+    const token = req.headers.authorization?.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    const user_id = decoded.user_id;
+
     let query = getAllQuestionQuery;
 
     let countQuery = `
       SELECT COUNT(*) AS total FROM question q
+      JOIN user u ON q.user_id = u.user_id
       LEFT JOIN skill s ON q.skill_id = s.skill_id
       WHERE 1=1`;
 
@@ -74,15 +85,25 @@ export const getAllQuestion = async (req, res) => {
       countParams.push(end_date);
     }
 
+    const [results] = await pool.query(getUserRoleQuery, [user_id]);
+    const [userRole] = results.map((result) => result.role);
+
+    if ([roles.QUESTION_CREATOR].includes(userRole)) {
+      query += " AND q.user_id = ?";
+      countQuery += " AND q.user_id = ?";
+      queryParams.push(user_id);
+      countParams.push(user_id);
+    }
+
     // Filter by search_filter if provided
     if (search_filter) {
       search_filter = search_filter.trim();
       if (search_filter.length > 0) {
         const searchPlaceholder = `%${search_filter}%`; // Using `%` for partial match
-        query += ` AND q.question_text LIKE ?`;
-        queryParams.push(searchPlaceholder);
-        countQuery += ` AND q.question_text LIKE ?`;
-        countParams.push(searchPlaceholder);
+        query += ` AND q.question_text LIKE ? OR CONCAT(u.firstname, " ", u.lastname) LIKE ?`;
+        queryParams.push(searchPlaceholder, searchPlaceholder);
+        countQuery += ` AND q.question_text LIKE ? OR CONCAT(u.firstname, " ", u.lastname) LIKE ?`;
+        countParams.push(searchPlaceholder, searchPlaceholder);
       }
     }
 
@@ -97,6 +118,8 @@ export const getAllQuestion = async (req, res) => {
     const [countResult] = await pool.query(countQuery, countParams);
     const totalItems = countResult[0].total;
     const totalPages = Math.ceil(totalItems / perPageNumber);
+
+    console.log(query);
 
     // ดึงข้อมูลตามหน้า
     const [result] = await pool.query(query, queryParams);
@@ -176,7 +199,6 @@ export const createQuestion = async (req, res) => {
   const schema = Joi.object({
     skill_id: Joi.number().integer().positive().allow(null),
     image_id: Joi.number().integer().positive().allow(null),
-    user_id: Joi.number().integer().positive().allow(null),
     question_text: Joi.string().min(5).max(300).required(),
     options: Joi.array()
       .items(
@@ -201,7 +223,12 @@ export const createQuestion = async (req, res) => {
     });
   }
 
-  const { skill_id, image_id, user_id, question_text, options } = value;
+  const { skill_id, image_id, question_text, options } = value;
+
+  //get create_by user_id from token
+  const token = req.headers.authorization?.split(" ")[1];
+  const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+  const user_id = decoded.user_id;
 
   try {
     //skill_id not exist

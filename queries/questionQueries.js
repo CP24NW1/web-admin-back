@@ -6,8 +6,11 @@ export const getAllQuestionQuery = `
         s.skill_name, 
         q.is_available, 
         q.is_report, 
-        q.create_at
+        q.create_at,
+        u.user_id,
+        CONCAT(u.firstname, " ", u.lastname) as created_by
         FROM question q
+        JOIN user u ON u.user_id = q.user_id
         LEFT JOIN skill s ON q.skill_id = s.skill_id
         WHERE 1=1`;
 

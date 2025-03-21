@@ -73,7 +73,7 @@ export const authorize = (role) => {
 
       const [results] = await pool.query(getUserRoleQuery, [user_id]);
 
-      const [userRole] = results.map((data) => data.role);
+      const [userRole] = results.map((result) => result.role);
 
       if (role.includes(userRole)) {
         return next();

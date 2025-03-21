@@ -29,8 +29,6 @@ export const grantRoleToUser = async (req, res) => {
   const [existUser] = await pool.query(getExistUser, [user_id]);
   const [existRole] = await pool.query(getExistRole, [role_id]);
 
-  console.log(existUser);
-
   if (existUser.length === 0) {
     return res.status(404).json({
       success: false,

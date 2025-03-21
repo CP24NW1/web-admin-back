@@ -31,7 +31,6 @@ export const createUser = async (req, res) => {
     firstname: Joi.string().min(1).max(30).required(),
     lastname: Joi.string().min(1).max(30).required(),
     email: Joi.string().email().max(50).required(),
-    dob: Joi.date().iso().required(),
     role_id: Joi.number().required(),
   });
 
@@ -47,7 +46,7 @@ export const createUser = async (req, res) => {
   }
 
   try {
-    const { firstname, lastname, email, dob, role_id } = value;
+    const { firstname, lastname, email, role_id } = value;
 
     const [existUser] = await pool.query(getExistUserQuery, [email]);
 
@@ -64,7 +63,6 @@ export const createUser = async (req, res) => {
       firstname,
       lastname,
       email,
-      dob,
       false,
       verificationCode,
       role_id,
@@ -176,7 +174,7 @@ export const editUser = async (req, res) => {
     firstname: Joi.string().min(1).max(30),
     lastname: Joi.string().min(1).max(30),
     email: Joi.string().email().max(50),
-    dob: Joi.date().iso(),
+    role_id: Joi.number().required(),
   });
 
   // Validate
@@ -191,7 +189,7 @@ export const editUser = async (req, res) => {
   }
 
   try {
-    const { firstname, lastname, email, dob } = value;
+    const { firstname, lastname, email, role_id } = value;
     const user_id = Number(req.params.user_id);
 
     const [existingUser] = await pool.query(getExistUserQuery, [email]);
@@ -203,7 +201,7 @@ export const editUser = async (req, res) => {
       });
     }
 
-    const queryValues = [firstname, lastname, email, dob, user_id];
+    const queryValues = [firstname, lastname, email, role_id, user_id];
 
     const [results] = await pool.query(updateUserQuery, queryValues);
 
@@ -277,6 +275,7 @@ export const getAllUserPagination = async (req, res) => {
       is_active,
       start_date,
       end_date,
+      role_id,
       page = "1",
       per_page = "10",
     } = req.query;
@@ -294,9 +293,13 @@ export const getAllUserPagination = async (req, res) => {
           u.email, 
           u.update_at,
           u.is_active,
-          u.is_verify
+          u.is_verify,
+          u.role_id,
+          r.role
       FROM 
           user u
+      JOIN
+          role r ON u.role_id = r.role_id
     `;
 
     let countQuery = `
@@ -334,6 +337,11 @@ export const getAllUserPagination = async (req, res) => {
     if (end_date) {
       whereConditions.push(`DATE(u.update_at) <= ?`);
       queryParams.push(end_date);
+    }
+
+    if (role_id) {
+      whereConditions.push(`u.role_id IN (?)`);
+      queryParams.push(role_id);
     }
 
     if (whereConditions.length > 0) {
@@ -424,6 +432,8 @@ export const fetchMe = async (req, res) => {
 
     const [result] = await pool.query(fetchMeQuery, [user_id]);
 
+    console.log(result);
+
     if (result.length === 0) {
       return res.status(404).json({
         success: false,
@@ -431,42 +441,9 @@ export const fetchMe = async (req, res) => {
       });
     }
 
-    const user = result.reduce((acc, curr) => {
-      const {
-        user_id,
-        firstname,
-        lastname,
-        email,
-        DOB,
-        is_active,
-        is_verify,
-        permission,
-      } = curr;
-
-      // Check if the user already exists in the accumulator
-      let user = acc.find((u) => u.user_id === user_id);
-      if (!user) {
-        user = {
-          user_id,
-          firstname,
-          lastname,
-          email,
-          DOB,
-          is_active,
-          is_verify,
-          permissions: [],
-        };
-        acc.push(user);
-      }
-
-      // Add permission to the user's permission list
-      user.permissions.push(permission);
-      return acc;
-    }, []);
-
     res.status(200).json({
       success: true,
-      user_detail: user[0],
+      user_detail: result[0],
     });
   } catch (error) {
     console.error(error);
