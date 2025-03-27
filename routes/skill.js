@@ -6,8 +6,6 @@ import { roles } from "../utils/role.js";
 const router = express.Router();
 
 // SKILL API
-// router.get("", auth, authorize(permissions.READ_SKILL), getAllSkill);
-
 router.get("", auth, authorize([roles.ADMIN, roles.QUESTION_CREATOR]), getAllSkill);
 
 export default router;

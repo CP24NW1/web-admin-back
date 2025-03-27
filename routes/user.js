@@ -18,8 +18,8 @@ const router = express.Router();
 
 router.get("/me", auth, fetchMe);
 router.post("/create", auth, authorize(roles.ADMIN), createUser);
-router.put("/:user_id/edit", auth, authorize(roles.ADMIN),  editUser);
-router.put("/:user_id/status", auth, authorize(roles.ADMIN),  disableEnableUser);
+router.put("/:user_id/edit", auth, authorize(roles.ADMIN), editUser);
+router.put("/:user_id/status", auth, authorize(roles.ADMIN), disableEnableUser);
 router.get("", auth, authorize(roles.ADMIN), getAllUserPagination);
 router.get("/:user_id", auth, authorize(roles.ADMIN), getUserDetail);
 router.put("/verify", verifyEmail);

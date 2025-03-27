@@ -1,4 +1,5 @@
 import { pool } from "../db.js";
+import { RoleDTO } from "../dtos/role.js";
 import {
   getAllRoleQuery,
   getExistRole,
@@ -9,9 +10,12 @@ import {
 export const getAllRole = async (req, res) => {
   try {
     const [roles] = await pool.query(getAllRoleQuery);
+
+    const roleDTO = roles.map((role) => new RoleDTO(role));
+
     return res.status(200).json({
       success: true,
-      roles: roles,
+      roles: roleDTO,
     });
   } catch (error) {
     console.error(error);

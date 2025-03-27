@@ -21,6 +21,7 @@ import { getExistUser } from "../queries/authQueries.js";
 
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { UserDTO } from "../dtos/user.js";
 
 //-------------------
 // CREATE USER
@@ -364,12 +365,14 @@ export const getAllUserPagination = async (req, res) => {
     const totalItems = countResult[0]?.totalItems;
     const totalPages = Math.ceil(totalItems / perPageNumber);
 
+    const formattedUsers = rows.map((user) => new UserDTO(user));
+
     res.json({
       page: pageNumber,
       per_page: perPageNumber,
       totalItems,
       totalPages,
-      data: rows,
+      data: formattedUsers,
     });
   } catch (error) {
     console.error(error);
@@ -397,9 +400,11 @@ export const getUserDetail = async (req, res) => {
       });
     }
 
+    const userDTO = new UserDTO(result[0]);
+
     res.status(200).json({
       success: true,
-      user_detail: result[0],
+      user_detail: userDTO,
     });
   } catch (error) {
     console.error(error);
@@ -432,8 +437,6 @@ export const fetchMe = async (req, res) => {
 
     const [result] = await pool.query(fetchMeQuery, [user_id]);
 
-    console.log(result);
-
     if (result.length === 0) {
       return res.status(404).json({
         success: false,
@@ -441,9 +444,11 @@ export const fetchMe = async (req, res) => {
       });
     }
 
+    const userDTO = new UserDTO(result[0]);
+
     res.status(200).json({
       success: true,
-      user_detail: result[0],
+      user_detail: userDTO,
     });
   } catch (error) {
     console.error(error);

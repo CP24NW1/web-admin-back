@@ -12,16 +12,11 @@ import {
   getUserByIDQuery,
 } from "../queries/questionQueries.js";
 import { createOptions, editOptions } from "./option.js";
-import {
-  createMultipleOptionsQuery,
-  deleteOptionsByQuestionIDQuery,
-  getOptionsByQuestionIDQuery,
-} from "../queries/optionQueries.js";
 
 import jwt from "jsonwebtoken";
-import { authorize } from "../middleware/auth.js";
 import { roles } from "../utils/role.js";
 import { getUserRoleQuery } from "../queries/authQueries.js";
+import { OptionDTO, QuestionDetailDTO, QuestionDTO } from "../dtos/question.js";
 
 //-------------------
 // GET ALL QUESTION
@@ -38,11 +33,9 @@ export const getAllQuestion = async (req, res) => {
       search_filter,
     } = req.query;
 
-    // แปลง page และ per_page จาก string เป็น number
     const pageNumber = parseInt(page, 10);
     const perPageNumber = parseInt(per_page, 10);
 
-    //filter question by user_id if they are not ADMIN
     const token = req.headers.authorization?.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
     const user_id = decoded.user_id;
@@ -95,11 +88,10 @@ export const getAllQuestion = async (req, res) => {
       countParams.push(user_id);
     }
 
-    // Filter by search_filter if provided
     if (search_filter) {
       search_filter = search_filter.trim();
       if (search_filter.length > 0) {
-        const searchPlaceholder = `%${search_filter}%`; // Using `%` for partial match
+        const searchPlaceholder = `%${search_filter}%`;
         query += ` AND q.question_text LIKE ? OR CONCAT(u.firstname, " ", u.lastname) LIKE ?`;
         queryParams.push(searchPlaceholder, searchPlaceholder);
         countQuery += ` AND q.question_text LIKE ? OR CONCAT(u.firstname, " ", u.lastname) LIKE ?`;
@@ -124,13 +116,15 @@ export const getAllQuestion = async (req, res) => {
     // ดึงข้อมูลตามหน้า
     const [result] = await pool.query(query, queryParams);
 
+    const formattedQuestions = result.map((item) => new QuestionDTO(item));
+
     // ส่งข้อมูลที่ดึงมา
     res.json({
       totalPages,
       totalItems,
       page: pageNumber,
       per_page: perPageNumber,
-      data: result,
+      data: formattedQuestions,
     });
   } catch (error) {
     console.error(error);
@@ -170,22 +164,23 @@ export const getQuestionByID = async (req, res) => {
       });
     }
 
-    res.json({
-      question_id: question_id,
-      question: result[0].question_text,
-      skill: {
-        skill_id: result[0].skill_id,
-        skill_name: result[0].skill_name,
-      },
-      options: result.map((option) => ({
-        option_id: option.option_id,
-        option_text: option.option_text,
-        is_correct: option.is_correct,
-      })),
+    const skill = {
+      skill_id: result[0].skill_id,
+      skill_name: result[0].skill_name,
+    };
 
+    const options = result.map((option) => new OptionDTO(option));
+
+    const questionDTO = new QuestionDetailDTO({
+      question_id: result[0].question_id,
+      question_text: result[0].question_text,
+      skill,
+      options,
       is_available: result[0].is_available,
       is_report: result[0].is_report,
     });
+
+    res.json(questionDTO);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
