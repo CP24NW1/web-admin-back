@@ -126,6 +126,20 @@ export const login = async (req, res) => {
 
     const user_id = user[0]?.user_id;
 
+    if (!user[0].is_active) {
+      return res.status(401).json({
+        success: false,
+        message: "Your account has been deactivated. Please contact support.",
+      });
+    }
+    if (!user[0].is_verify) {
+      return res.status(401).json({
+        success: false,
+        message:
+          "Your account is not verified. Please check your email for verification.",
+      });
+    }
+
     const payload = { email, user_id };
 
     const accessToken = jwt.sign(payload, accessSecret, { expiresIn: "1h" });

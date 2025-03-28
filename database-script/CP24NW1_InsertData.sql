@@ -20,6 +20,7 @@ INSERT INTO role (role_id, role) VALUES
 
 -- INSERT USER
 INSERT INTO user(firstname, lastname, email, DOB, password, is_verify) values("ADMIN", "CP24NW1", "admin@mailinator.com", "2002-11-28", "$2b$10$FLZFnRG6EOnJmT7TA/cNyuVDRZD.wqNODac4HrX1AIa9fA/e4YJm.", 1);
+INSERT INTO user(firstname, lastname, email, DOB, password, is_verify) values("ADMIN 2", "CP24NW1", "admin@mailinator.com", "2002-11-28", "$2b$10$FLZFnRG6EOnJmT7TA/cNyuVDRZD.wqNODac4HrX1AIa9fA/e4YJm.", 1);
 INSERT INTO user(firstname, lastname, email, DOB, password, is_verify) values("CREATOR 1", "CP24NW1", "creator1@mailinator.com", "2002-11-28", "$2b$10$FLZFnRG6EOnJmT7TA/cNyuVDRZD.wqNODac4HrX1AIa9fA/e4YJm.", 1);
 INSERT INTO user(firstname, lastname, email, DOB, password, is_verify) values("CREATOR 2", "CP24NW1", "creator2@mailinator.com", "2002-11-28", "$2b$10$FLZFnRG6EOnJmT7TA/cNyuVDRZD.wqNODac4HrX1AIa9fA/e4YJm.", 1);
 INSERT INTO user(firstname, lastname, email, DOB, password, is_verify) values("TESTER 1", "CP24NW1", "tester1@mailinator.com", "2002-11-28", "$2b$10$FLZFnRG6EOnJmT7TA/cNyuVDRZD.wqNODac4HrX1AIa9fA/e4YJm.", 1);
@@ -27,10 +28,11 @@ INSERT INTO user(firstname, lastname, email, DOB, password, is_verify) values("T
 
 -- GRANT ROLE 
 UPDATE user SET role_id = 1 WHERE user_id = 1;
-UPDATE user SET role_id = 2 WHERE user_id = 2;
+UPDATE user SET role_id = 1 WHERE user_id = 2;
 UPDATE user SET role_id = 2 WHERE user_id = 3;
-UPDATE user SET role_id = 3 WHERE user_id = 4;
+UPDATE user SET role_id = 2 WHERE user_id = 4;
 UPDATE user SET role_id = 3 WHERE user_id = 5;
+UPDATE user SET role_id = 3 WHERE user_id = 6;
 
 
 -- INSERT SAMPLE QUESTIONS

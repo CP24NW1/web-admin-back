@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { getUserRoleQuery } from "../queries/authQueries.js";
+import { getExistUserByID, getUserRoleQuery } from "../queries/authQueries.js";
 import { pool } from "../db.js";
 
 //-------------------
@@ -72,8 +72,15 @@ export const authorize = (role) => {
       const user_id = decoded.user_id;
 
       const [results] = await pool.query(getUserRoleQuery, [user_id]);
-
       const [userRole] = results.map((result) => result.role);
+      const [user] = await pool.query(getExistUserByID, [user_id]);
+
+      if (!user[0].is_active) {
+        return res.status(401).json({
+          success: false,
+          message: "Your account has been deactivated. Please contact support.",
+        });
+      }
 
       if (role.includes(userRole)) {
         return next();

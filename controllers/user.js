@@ -22,6 +22,7 @@ import { getExistUser } from "../queries/authQueries.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserDTO } from "../dtos/user.js";
+import { getRoleFromUser } from "../queries/roleQueries.js";
 
 //-------------------
 // CREATE USER
@@ -234,6 +235,9 @@ export const editUser = async (req, res) => {
 export const disableEnableUser = async (req, res) => {
   const user_id = req.params.user_id;
 
+  const token = req.headers.authorization?.split(" ")[1];
+  const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+
   try {
     const [existingUser] = await pool.query(getExistUserByIdQuery, [user_id]);
 
@@ -241,6 +245,15 @@ export const disableEnableUser = async (req, res) => {
       return res.status(404).json({
         success: false,
         error: "User not found",
+      });
+    }
+
+    const [role] = await pool.query(getRoleFromUser, [decoded.user_id]);
+
+    if (role[0].role === "ADMIN" && Number(user_id) === decoded.user_id) {
+      return res.status(400).json({
+        success: false,
+        error: "Unable to change admin status.",
       });
     }
 
