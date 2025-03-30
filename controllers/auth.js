@@ -142,7 +142,7 @@ export const login = async (req, res) => {
 
     const payload = { email, user_id };
 
-    const accessToken = jwt.sign(payload, accessSecret, { expiresIn: "1h" });
+    const accessToken = jwt.sign(payload, accessSecret, { expiresIn: "2h" });
 
     const refreshToken = jwt.sign(payload, refreshSecret, {
       expiresIn: "30d",
@@ -191,7 +191,7 @@ export const refreshAccessToken = async (req, res) => {
 
     const payload = { email: decoded.email, user_id: decoded.user_id };
     const accessToken = jwt.sign(payload, accessSecret, {
-      expiresIn: "1h",
+      expiresIn: "2h",
     });
 
     res.status(200).json({
