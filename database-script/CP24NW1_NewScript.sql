@@ -27,11 +27,6 @@ CREATE TABLE skill (
     skill_name VARCHAR(50)
 );
 
-CREATE TABLE imagepath (
-    image_id INT AUTO_INCREMENT PRIMARY KEY,
-    image_path VARCHAR(200)
-);
-
 CREATE TABLE question (
     question_id INT AUTO_INCREMENT PRIMARY KEY,
     skill_id INT,
@@ -42,7 +37,6 @@ CREATE TABLE question (
 	is_available BOOLEAN DEFAULT TRUE,
     is_report BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (skill_id) REFERENCES skill(skill_id),
-    FOREIGN KEY (image_id) REFERENCES imagepath(image_id),
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 
